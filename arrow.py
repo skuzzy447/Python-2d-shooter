@@ -14,7 +14,7 @@ class Arrow(Entity):
 
     def check_collision(self, enemies):
         for enemy in enemies:
-            if int(self.position.x) == int(enemy.position.x - 0.5) and int(self.position.y) == int(enemy.position.y - 0.5):
+            if int(self.position.x) == int(enemy.position.x) and int(self.position.y) == int(enemy.position.y):
                 enemy.health -= 100
                 self.kill()
                 if enemy.health <= 0:

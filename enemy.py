@@ -32,8 +32,11 @@ class Enemy(Entity):
             self.move_delay -= dt
         self.draw(player_pos)
 
-def add_enemy(screen, updateable, enemies, world_size):
+def add_enemy(screen, updateable, enemies, world_size, tilemap):
     position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
+    if tilemap[int(position.y)][int(position.x)] == 2:
+        while tilemap[int(position.y)][int(position.x)] == 2:
+            position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
     new_enemy = Enemy(screen, position)
     updateable.add(new_enemy)
     enemies.add(new_enemy)

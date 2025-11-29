@@ -1,11 +1,13 @@
 import pygame
 import json
 import math
+import random
 from generate_world import generate
 from constants import *
 from enemy import Enemy
 from enemy import add_enemy
 from arrow import Arrow
+from get_tileset import get_tileset
 
 def main():
     pygame.init()
@@ -15,9 +17,13 @@ def main():
     running = True
 
     Player = pygame.image.load(f"{PATH}/assets/player.png").convert()
-    Grass = pygame.image.load(f"{PATH}/assets/grass.png").convert()
+    #Grass = pygame.image.load(f"{PATH}/assets/grass.png").convert()
     Mountain = pygame.image.load(f"{PATH}/assets/cobblestone.png").convert()
     Water = pygame.image.load(f"{PATH}/assets/water.png").convert()
+    grass_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/grass_tileset.png").convert_alpha())
+
+    
+            
 
     world_size = 128
     player_pos = pygame.Vector2(world_size / 2 - 2, world_size / 2 - 2)
@@ -34,7 +40,7 @@ def main():
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     for _ in range(max_enemies):
-        new_enemy = add_enemy(screen, updateable, enemies, world_size)
+        new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap)
 
     while running:
         for event in pygame.event.get():
@@ -51,19 +57,19 @@ def main():
         keys = pygame.key.get_pressed()
         if not moving:
             if keys[pygame.K_a] and player_pos.x > 0:
-                if tilemap[int(player_pos.y)][int(player_pos.x - 1)] != 2:
+                if not tilemap[int(player_pos.y)][int(player_pos.x - 1)] >= 32:
                     player_pos.x -= 1
                     moving = True
             if keys[pygame.K_d] and player_pos.x < world_size - 1:
-                if tilemap[int(player_pos.y)][int(player_pos.x + 1)] != 2:
+                if not tilemap[int(player_pos.y)][int(player_pos.x + 1)] >= 32:
                     player_pos.x += 1
                     moving = True
             if keys[pygame.K_w] and player_pos.y > 0:
-                if tilemap[int(player_pos.y - 1)][int(player_pos.x)] != 2:
+                if not tilemap[int(player_pos.y - 1)][int(player_pos.x)] >= 32:
                     player_pos.y -= 1
                     moving = True
             if keys[pygame.K_s] and player_pos.y < world_size - 1:
-                if tilemap[int(player_pos.y + 1)][int(player_pos.x)] != 2:
+                if not tilemap[int(player_pos.y + 1)][int(player_pos.x)] >= 32:
                     player_pos.y += 1
                     moving = True
 
@@ -74,25 +80,21 @@ def main():
         if moving and move_cooldown <= 0:
             moving = False
 
-        screen.fill((100,0,25))
+        screen.fill((44.7,45.9,10.6))
 
         for y in range(max(0, int(player_pos.y - 32)), min(world_size, int(player_pos.y + 32))):
             for x in range(max(0, int(player_pos.x - 32)), min(world_size, int(player_pos.x + 32))):
-                screen_x = x * 32 - (player_pos.x * 32 -496)
-                screen_y = y * 32 - (player_pos.y * 32 -496)
-                if tilemap[y][x] == 0:
-                    screen.blit(Grass, (screen_x, screen_y))
-                if tilemap[y][x] == 1:
-                    screen.blit(Water, (screen_x, screen_y))
-                if tilemap[y][x] == 2:
-                    screen.blit(Mountain, (screen_x, screen_y))
+                screen_x = x * 32 - (player_pos.x * 32 - 512)
+                screen_y = y * 32 - (player_pos.y * 32 - 512)
+                screen.blit(grass_tiles[tilemap[y][x]], (screen_x, screen_y))
         
         for entity in updateable:
             if isinstance(entity, Enemy):
                 entity.update(player_pos, tilemap, dt)
             else:
                 entity.update(player_pos, dt)
-        screen.blit(Player, (512 - 16, 512 - 16))
+        screen.blit(Player, (512, 512))
+        
         
         pygame.display.flip()
         dt = clock.tick(60) / 1000
