@@ -10,7 +10,6 @@ class Enemy(Entity):
         self.health = 100
         self.path = []
         self.pathfind_delay = 0
-        #self.sprite = pygame.image.load(f"{PATH}/assets/enemy.png").convert()
 
     def pathfind(self, player_pos, tilemap):
         self.path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap)
@@ -19,7 +18,7 @@ class Enemy(Entity):
         if len(self.path) > 1:
             self.position.x, self.position.y = self.path.pop(1)
     
-    def update(self, player_pos, tilemap, dt):
+    def update(self, player_pos, tilemap, dt, zoom):
         if self.pathfind_delay <= 0 and self.position.x in range(int(player_pos.x - 20), int(player_pos.x + 20)) and self.position.y in range(int(player_pos.y - 20), int(player_pos.y + 20)):
             self.pathfind(player_pos, tilemap)
             self.pathfind_delay = 2.0
@@ -30,7 +29,10 @@ class Enemy(Entity):
             self.move_delay = 0.5
         if self.move_delay > 0:
             self.move_delay -= dt
-        self.draw(player_pos)
+        self.draw(player_pos, zoom)
+
+    def zoom(self, zoom):
+        self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/enemy.png").convert(), (int(32 * zoom), int(32 * zoom)))
 
 def add_enemy(screen, updateable, enemies, world_size, tilemap):
     position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))

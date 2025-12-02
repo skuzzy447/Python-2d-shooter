@@ -7,7 +7,7 @@ from get_tileset import get_tileset
 from constants import PATH
 
 class Player(Entity):
-    def __init__(self, screen, position, health=100):
+    def __init__(self, screen, position, zoom, health=100):
         super().__init__(position, screen, None)
         self.screen = screen
         self.health = health
@@ -16,12 +16,11 @@ class Player(Entity):
         self.direction = 'down'
         self.frame_delay = 0
         self.move_speed = 1
-        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/player_sprite_sheet.png").convert_alpha())
+        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/player_sprite_sheet.png").convert_alpha(), zoom)
         self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
                            (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
                            (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
                            (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
-        print(len(self.animations[0]))
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
 
@@ -55,13 +54,29 @@ class Player(Entity):
     def is_alive(self):
         return self.health > 0
 
-    def shoot(self, screen, mouse_pos, enemies):
+    def shoot(self, screen, mouse_pos, enemies, zoom):
         direction = pygame.Vector2(mouse_pos[0] - 512, mouse_pos[1] - 512).normalize()
         rotation = math.degrees(math.atan2(-direction.y, direction.x))
-        new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, rotation, direction)
+        new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
         return new_arrow
+    
+    def zoom(self, zoom):
+        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/player_sprite_sheet.png").convert_alpha(), zoom)
+        self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
+                           (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
+                           (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
+                           (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
+        if self.direction == 'up':
+            self.animation = self.animations[2]
+        elif self.direction == 'down':
+            self.animation = self.animations[0]
+        elif self.direction == 'left':
+            self.animation = self.animations[3]
+        elif self.direction == 'right':
+            self.animation = self.animations[1]
+        self.sprite = self.animation[0]
 
-    def update(self,tilemap, dt):
+    def update(self,tilemap, dt, zoom):
         if self.moving:
             self.frame_delay += dt
             if self.frame_delay >= 0.1 / self.move_speed:
@@ -87,6 +102,4 @@ class Player(Entity):
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
                     self.moving = False
-                print(self.position)
-        #screen.blit(self.sprite, (512-32, 512-32))
-        #self.draw(self.position)
+        self.draw(self.position, zoom)

@@ -3,9 +3,10 @@ import pygame
 from constants import PATH
 
 class Arrow(Entity):
-    def __init__(self, screen, position, enemies, rotation=0 , direction=pygame.Vector2(1,0)):
-        super().__init__(position, screen, pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha())
-        self.sprite = pygame.transform.rotate(self.sprite, rotation)
+    def __init__(self, screen, position, enemies, zoom, rotation=0 , direction=pygame.Vector2(1,0)):
+        super().__init__(position, screen, pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom))))
+        self.rotation = rotation
+        self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
         self.direction = direction
         self.enemies = enemies
 
@@ -19,10 +20,15 @@ class Arrow(Entity):
                 self.kill()
                 if enemy.health <= 0:
                     enemy.kill()
+    
+    def zoom(self, zoom):
+        print("Zooming arrow sprite")
+        self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
+        self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
 
-    def update(self, player_pos, dt):
+    def update(self, player_pos, dt, zoom):
         self.move(dt)
-        self.draw(player_pos)
+        self.draw(player_pos, zoom)
         self.check_collision(self.enemies)
         if self.position.x > player_pos.x + 16 or self.position.x < player_pos.x - 16 or self.position.y > player_pos.y + 16 or self.position.y < player_pos.y - 16:
             self.kill()
