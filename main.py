@@ -1,9 +1,9 @@
 import pygame
 import json
-import math
-import random
+from math import ceil
 from generate_world import generate
 from constants import *
+from player import Player
 from enemy import Enemy
 from enemy import add_enemy
 from arrow import Arrow
@@ -16,19 +16,9 @@ def main():
     dt = 0
     running = True
 
-    Player = pygame.image.load(f"{PATH}/assets/player.png").convert()
-    #Grass = pygame.image.load(f"{PATH}/assets/grass.png").convert()
-    Mountain = pygame.image.load(f"{PATH}/assets/cobblestone.png").convert()
-    Water = pygame.image.load(f"{PATH}/assets/water.png").convert()
-    grass_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/grass_tileset.png").convert_alpha())
-
-    
-            
+    ground_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/ground_tileset.png").convert_alpha())
 
     world_size = 128
-    player_pos = pygame.Vector2(world_size / 2 - 2, world_size / 2 - 2)
-    moving = False
-    move_cooldown = 0
     max_enemies = world_size // 16
 
 
@@ -39,6 +29,7 @@ def main():
 
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
+    player = Player(screen, pygame.Vector2(world_size / 2 - 2, world_size / 2 - 2))
     for _ in range(max_enemies):
         new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap)
 
@@ -49,53 +40,42 @@ def main():
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
-                    direction = pygame.Vector2(pygame.mouse.get_pos()[0] - 512, pygame.mouse.get_pos()[1] - 512).normalize()
-                    rotation = math.degrees(math.atan2(-direction.y, direction.x))
-                    new_arrow = Arrow(screen, pygame.Vector2(player_pos.x, player_pos.y), enemies, rotation, direction)
-                    updateable.add(new_arrow)
+                    updateable.add(player.shoot(screen, pygame.mouse.get_pos(), enemies))
 
         keys = pygame.key.get_pressed()
-        if not moving:
-            if keys[pygame.K_a] and player_pos.x > 0:
-                if not tilemap[int(player_pos.y)][int(player_pos.x - 1)] >= 32:
-                    player_pos.x -= 1
-                    moving = True
-            if keys[pygame.K_d] and player_pos.x < world_size - 1:
-                if not tilemap[int(player_pos.y)][int(player_pos.x + 1)] >= 32:
-                    player_pos.x += 1
-                    moving = True
-            if keys[pygame.K_w] and player_pos.y > 0:
-                if not tilemap[int(player_pos.y - 1)][int(player_pos.x)] >= 32:
-                    player_pos.y -= 1
-                    moving = True
-            if keys[pygame.K_s] and player_pos.y < world_size - 1:
-                if not tilemap[int(player_pos.y + 1)][int(player_pos.x)] >= 32:
-                    player_pos.y += 1
-                    moving = True
-
-        if moving and move_cooldown <= 0:
-            move_cooldown = 0.05
-        if moving and move_cooldown > 0:
-            move_cooldown -= dt
-        if moving and move_cooldown <= 0:
-            moving = False
+        if not player.moving:
+            if keys[pygame.K_a] and player.position.x > 0:
+                if not tilemap[int(player.position.y)][int(player.position.x - 1)] >= 32:
+                    player.move('left')
+            elif keys[pygame.K_d] and player.position.x < world_size - 1:
+                if not tilemap[int(player.position.y)][int(player.position.x + 1)] >= 32:
+                    player.move('right')
+            elif keys[pygame.K_w] and player.position.y > 0:
+                if not tilemap[int(player.position.y - 1)][int(player.position.x)] >= 32:
+                    player.move('up')
+            elif keys[pygame.K_s] and player.position.y < world_size - 1:
+                if not tilemap[int(player.position.y + 1)][int(player.position.x)] >= 32:
+                    player.move('down')
+            if keys[pygame.K_LSHIFT]:
+                player.sprint()
+            else:
+                player.move_speed = 1
 
         screen.fill((44.7,45.9,10.6))
-
-        for y in range(max(0, int(player_pos.y - 32)), min(world_size, int(player_pos.y + 32))):
-            for x in range(max(0, int(player_pos.x - 32)), min(world_size, int(player_pos.x + 32))):
-                screen_x = x * 32 - (player_pos.x * 32 - 512)
-                screen_y = y * 32 - (player_pos.y * 32 - 512)
-                screen.blit(grass_tiles[tilemap[y][x]], (screen_x, screen_y))
-        
+        player.update(tilemap, dt)
+        for y in range(max(0, int(player.position.y - 32)), min(world_size, int(player.position.y + 32))):
+            for x in range(max(0, int(player.position.x - 32)), min(world_size, int(player.position.x + 32))):
+                screen_x = x * 32 - (player.position.x * 32 - 512)
+                screen_y = y * 32 - (player.position.y * 32 - 512)
+                screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
+        player.draw(player.position)
         for entity in updateable:
             if isinstance(entity, Enemy):
-                entity.update(player_pos, tilemap, dt)
+                entity.update(player.position, tilemap, dt)
             else:
-                entity.update(player_pos, dt)
-        screen.blit(Player, (512, 512))
-        
-        
+                entity.update(player.position, dt)
+
+
         pygame.display.flip()
         dt = clock.tick(60) / 1000
 
