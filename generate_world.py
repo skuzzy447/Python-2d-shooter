@@ -129,6 +129,20 @@ def build_boulders(tilemap):
                     if  not  n >= 32 and  s >= 32 and not  e >= 32 and  w >= 32 and not sw >= 32:
                         tilemap[y][x] = 39
     return tilemap
+
+def place_trees(tilemap, tree_density):
+    tree_list = []
+    if len(tilemap) == 0:
+        return tilemap
+    for y in range(len(tilemap)):
+        for x in range(len(tilemap[y])):
+            if tilemap[y][x] < 29 and tilemap[y-1][x] != 30:
+                if random.randint(0, 200) < tree_density:
+                    tree_list.append((x, y))
+                    #tilemap[y][x] = 30
+                    #tilemap[y-1][x] = 29
+    return tilemap, tree_list
+
 def generate(size):
     tilemap = []
     for y in range(0,size):
@@ -162,15 +176,17 @@ def generate(size):
     path = os.path.dirname(os.path.abspath(__file__))
     tilemap = remove_small_lakes(tilemap)
     tilemap = build_boulders(tilemap)
+    tilemap, tree_list = place_trees(tilemap, 2)
     with open(f"{path}/tilemap.json", "w") as f:
         json.dump(tilemap, f)
+    return tilemap, tree_list
 
 def random_tile():
     tile = random.randint(0,100)
     if tile <= 96:
         if random.randint(0,3) == 0:
             if random.randint(0,3) == 0:
-                tile = random.randint(0,30)
+                tile = random.randint(0,28)
             else:
                 tile = random.randint(0,16)
         else:

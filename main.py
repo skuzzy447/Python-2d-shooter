@@ -16,10 +16,7 @@ def main():
     dt = 0
     running = True
     ground_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/ground_tileset.png").convert_alpha(), zoom)
-    generate(world_size)
-    tilemap = []
-    with open(f"{PATH}/tilemap.json", "r") as f:
-        tilemap = json.load(f)
+    tilemap, tree_list = generate(world_size)
 
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
@@ -70,10 +67,10 @@ def main():
                 if not tilemap[int(player.position.y)][int(player.position.x + 1)] >= 32:
                     player.move('right')
             elif keys[pygame.K_w] and player.position.y > 0:
-                if not tilemap[int(player.position.y - 1)][int(player.position.x)] >= 32:
+                if not tilemap[int(player.position.y - 1)][int(player.position.x)] >= 32 and (player.position.x, player.position.y) not in tree_list:
                     player.move('up')
             elif keys[pygame.K_s] and player.position.y < world_size - 1:
-                if not tilemap[int(player.position.y + 1)][int(player.position.x)] >= 32:
+                if not tilemap[int(player.position.y + 1)][int(player.position.x)] >= 32 and (player.position.x, player.position.y+1) not in tree_list:
                     player.move('down')
             if keys[pygame.K_LSHIFT]:
                 player.sprint()
@@ -81,20 +78,29 @@ def main():
                 player.move_speed = 1
 
         screen.fill((44.7,45.9,10.6))
-
+        player.update(tilemap, dt)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)
                 screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512)
                 screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
-        
-        player.update(tilemap, dt, zoom)
-
+                for (tree_x, tree_y) in tree_list:
+                    if tree_x == x and tree_y == y:
+                        screen.blit(ground_tiles[30], (screen_x, screen_y))
+        player.draw(player.position, zoom)
         for entity in updateable:
-            if isinstance(entity, Enemy):
-                entity.update(player.position, tilemap, dt, zoom)
-            else:
-                entity.update(player.position, dt, zoom)
+                if isinstance(entity, Enemy):
+                    entity.update(player.position, tilemap, dt, zoom)
+                else:
+                    entity.update(player.position, dt, zoom)
+        for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
+            for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
+                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)
+                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512)
+                for (tree_x, tree_y) in tree_list:
+                    if tree_x == x and tree_y == y:
+                        screen.blit(ground_tiles[29], (screen_x, (y - 1) * 32 * zoom - (player.position.y * 32 * zoom - 512)))
+        
 
 
         pygame.display.flip()

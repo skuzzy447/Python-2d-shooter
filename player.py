@@ -77,7 +77,7 @@ class Player(Entity):
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
 
-    def update(self,tilemap, dt, zoom):
+    def update(self,tilemap, dt):
         if self.moving:
             self.frame_delay += dt
             if self.frame_delay >= 0.1 / self.move_speed:
@@ -103,7 +103,6 @@ class Player(Entity):
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
                     self.moving = False
-        self.draw(self.position, zoom)
 
 def spawn_player(screen, world_size, tilemap, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)
