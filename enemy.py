@@ -6,7 +6,7 @@ from entity import Entity
 
 class Enemy(Entity):
     def __init__(self, screen, position):
-        super().__init__(position, screen, pygame.image.load(f"{PATH}/assets/enemy.png").convert())
+        super().__init__(position, screen, pygame.image.load(f"{PATH}/assets/enemy.png").convert_alpha())
         self.health = 100
         self.path = []
         self.pathfind_delay = 0
@@ -32,12 +32,12 @@ class Enemy(Entity):
         self.draw(player_pos, zoom)
 
     def zoom(self, zoom):
-        self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/enemy.png").convert(), (int(32 * zoom), int(32 * zoom)))
+        self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/enemy.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
 
 def add_enemy(screen, updateable, enemies, world_size, tilemap):
     position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
-    if tilemap[int(position.y)][int(position.x)] == 2:
-        while tilemap[int(position.y)][int(position.x)] == 2:
+    if tilemap[int(position.y)][int(position.x)] >= 32:
+        while tilemap[int(position.y)][int(position.x)] >= 32:
             position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
     new_enemy = Enemy(screen, position)
     updateable.add(new_enemy)

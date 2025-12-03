@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 from fractions import Fraction
 from arrow import Arrow
 from entity import Entity
@@ -103,3 +104,10 @@ class Player(Entity):
                     self.sprite = self.animation[0]
                     self.moving = False
         self.draw(self.position, zoom)
+
+def spawn_player(screen, world_size, tilemap, zoom):
+    position = pygame.Vector2(world_size / 2, world_size / 2)
+    if tilemap[int(position.y)][int(position.x)] >= 32:
+        while tilemap[int(position.y)][int(position.x)] >= 32:
+            position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
+    return Player(screen, position, zoom)

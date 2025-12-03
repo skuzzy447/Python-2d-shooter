@@ -4,5 +4,5 @@ import pygame
 
 
 world_size = 128
-max_enemies = world_size // 16
+max_enemies = world_size // 8
 zoom = 1.0

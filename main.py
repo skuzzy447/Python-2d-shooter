@@ -4,6 +4,7 @@ from generate_world import generate
 from constants import *
 from settings import *
 from player import Player
+from player import spawn_player
 from enemy import Enemy
 from enemy import add_enemy
 
@@ -22,7 +23,7 @@ def main():
 
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
-    player = Player(screen, pygame.Vector2(world_size / 2 - 2, world_size / 2 - 2), zoom)
+    player = spawn_player(screen, world_size, tilemap, zoom)
 
     def zoom_entities(zoom_add):
         nonlocal ground_tiles
