@@ -77,32 +77,36 @@ class Player(Entity):
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
 
-    def update(self,tilemap, dt):
+    def update(self,tilemap, dt, trees):
         if self.moving:
             self.frame_delay += dt
-            if self.frame_delay >= 0.1 / self.move_speed:
+            if self.frame_delay >= 0.2 / self.move_speed:
                 self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[6]
                 self.frame_delay = 0
                 
                 new_x, new_y = self.position.x, self.position.y
                 if self.direction == 'up':
-                    new_y -= Fraction(1, 2)
+                    new_y -= 1
                 elif self.direction == 'down':
-                    new_y += Fraction(1, 2)
+                    new_y += 1
                 elif self.direction == 'left':
-                    new_x -= Fraction(1, 2)
+                    new_x -= 1
                 elif self.direction == 'right':
-                    new_x += Fraction(1, 2)
+                    new_x += 1
 
-                if not tilemap[int(new_y)][int(new_x)] >= 32:
+                if not tilemap[int(new_y)][int(new_x)] >= 32 and (int(new_x),int(new_y)) not in trees:
                     self.position.x = new_x
                     self.position.y = new_y
-                
-                if self.sprite == self.animation[2]:
-                    self.moving = False
+            
+                self.moving = False
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
-                    self.moving = False
+        else:
+            self.frame_delay += dt
+            if self.frame_delay >= 0.2 / self.move_speed:
+                self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[6]
+                self.frame_delay = 0
+                self.sprite = self.animation[0]
 
 def spawn_player(screen, world_size, tilemap, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)

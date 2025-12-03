@@ -29,17 +29,16 @@ class Arrow(Entity):
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         screen_x = float(x) * 32 * zoom - (player_position.x * 32 * zoom - 512)
         screen_y = float(y) * 32 * zoom - (player_position.y * 32 * zoom - 512)
-        if (int(x), int(y)) in trees:
-            print("stuck")
+        if (int(x), int(y)) in trees or (int(x), int(y)+1) in trees:
             self.stuck = True  
             self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()
             self.rotation = math.degrees(math.atan2(-self.direction.y, self.direction.x))
             #self.position.x, self.position.y = x, y
-        if (int(x), int(y)+1) in trees:
-            print("stuck")
-            self.stuck = True
-            self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()
-            self.rotation = math.degrees(math.atan2(-self.direction.y, self.direction.x))
+        #if (int(x), int(y)+1) in trees:
+            #print("stuck")
+            #self.stuck = True
+            #self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()
+            #self.rotation = math.degrees(math.atan2(-self.direction.y, self.direction.x))
             #self.position.x, self.position.y = x, y
     
     def zoom(self, zoom):
