@@ -57,24 +57,25 @@ def main():
                 if event.key == pygame.K_MINUS:
                     if zoom > 1.0:
                         zoom_entities(-0.5)
-
+                if event.key == pygame.K_LSHIFT:
+                     player.sprint()
+            
+            if event.type == pygame.KEYUP:
+                 if event.key == pygame.K_LSHIFT:
+                      player.move_speed = 1
         keys = pygame.key.get_pressed()
         if not player.moving:
             if keys[pygame.K_a] and player.position.x > 0:
-                    player.move('left')
+                    player.move('left', tilemap, tree_list)
             elif keys[pygame.K_d] and player.position.x < world_size - 1:
-                    player.move('right')
+                    player.move('right', tilemap, tree_list)
             elif keys[pygame.K_w] and player.position.y > 0:
-                    player.move('up')
+                    player.move('up', tilemap, tree_list)
             elif keys[pygame.K_s] and player.position.y < world_size - 1:
-                    player.move('down')
-            if keys[pygame.K_LSHIFT]:
-                player.sprint()
-            else:
-                player.move_speed = 1
+                    player.move('down', tilemap, tree_list)
 
         screen.fill((44.7,45.9,10.6))
-        player.update(tilemap, dt, tree_list)
+        player.update(dt)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)

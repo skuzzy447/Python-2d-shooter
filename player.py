@@ -15,7 +15,8 @@ class Player(Entity):
         self.position = position
         self.moving = False
         self.direction = 'down'
-        self.frame_delay = 0
+        self.frame_delay = 0.2
+        self.move_delay = 0.005
         self.move_speed = 1
         self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/player_sprite_sheet.png").convert_alpha(), zoom)
         self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
@@ -25,28 +26,8 @@ class Player(Entity):
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
 
-    def move(self, direction):
-        if self.direction == direction and not self.moving:
-            self.moving = True
-        else:
-            self.direction = direction
-            if not self.moving:
-                if direction == 'up':
-                    self.animation = self.animations[2]
-                    self.sprite = self.animation[0]
-                elif direction == 'down':
-                    self.animation = self.animations[0]
-                    self.sprite = self.animation[0]
-                elif direction == 'left':
-                    self.animation = self.animations[3]
-                    self.sprite = self.animation[0]
-                elif direction == 'right':
-                    self.animation = self.animations[1]
-                    self.sprite = self.animation[0]
-                self.moving = True
-
     def sprint(self):
-        self.move_speed = min(2, self.move_speed + 0.1)
+        self.move_speed = 2
     def take_damage(self, amount):
         self.health -= amount
         if self.health < 0:
@@ -77,35 +58,73 @@ class Player(Entity):
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
 
-    def update(self,tilemap, dt, trees):
+    def can_move(self, tilemap, trees):
+        new_x, new_y = self.position.x, self.position.y
+        if self.direction == 'up':
+            new_y -= 1
+        elif self.direction == 'down':
+            new_y += 1
+        elif self.direction == 'left':
+            new_x -= 1
+        elif self.direction == 'right':
+            new_x += 1
+        if not tilemap[int(new_y)][int(new_x)] >= 32 and (int(new_x),int(new_y)) not in trees:
+            return True
+        else:
+            return False
+        
+    def move(self, direction, tilemap, trees):
+        if self.direction == direction and not self.moving:
+            if self.can_move(tilemap, trees):
+                self.moving = True
+        else:
+            self.direction = direction
+            if not self.moving:
+                if direction == 'up':
+                    self.animation = self.animations[2]
+                    self.sprite = self.animation[0]
+                elif direction == 'down':
+                    self.animation = self.animations[0]
+                    self.sprite = self.animation[0]
+                elif direction == 'left':
+                    self.animation = self.animations[3]
+                    self.sprite = self.animation[0]
+                elif direction == 'right':
+                    self.animation = self.animations[1]
+                    self.sprite = self.animation[0]
+                if self.can_move(tilemap, trees):
+                    self.moving = True
+
+    def update(self, dt):
         if self.moving:
-            self.frame_delay += dt
-            if self.frame_delay >= 0.2 / self.move_speed:
-                self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[6]
-                self.frame_delay = 0
-                
+            print((dt/8)*self.move_speed)
+            self.frame_delay -= dt * self.move_speed
+            self.move_delay -= (dt / 4)
+            if self.frame_delay <= 0:
+                self.frame_delay = 0.2
+                self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
+            if self.move_delay <= 0:
+                self.move_delay = 0.005
                 new_x, new_y = self.position.x, self.position.y
                 if self.direction == 'up':
-                    new_y -= 1
+                    new_y -= Fraction(1,int(16 / self.move_speed))
                 elif self.direction == 'down':
-                    new_y += 1
+                    new_y += Fraction(1,int(16 / self.move_speed))
                 elif self.direction == 'left':
-                    new_x -= 1
+                    new_x -= Fraction(1,int(16 / self.move_speed))
                 elif self.direction == 'right':
-                    new_x += 1
-
-                if not tilemap[int(new_y)][int(new_x)] >= 32 and (int(new_x),int(new_y)) not in trees:
-                    self.position.x = new_x
-                    self.position.y = new_y
-            
-                self.moving = False
+                    new_x += Fraction(1,int(16 / self.move_speed))
+                self.position.x = new_x 
+                self.position.y = new_y
+                if self.position.x == round(self.position.x) and self.position.y == round(self.position.y):
+                    self.moving = False
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
         else:
-            self.frame_delay += dt
-            if self.frame_delay >= 0.2 / self.move_speed:
-                self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[6]
-                self.frame_delay = 0
+            self.frame_delay -= dt
+            if self.frame_delay <= 0:
+                self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
+                self.frame_delay = 0.2
                 self.sprite = self.animation[0]
 
 def spawn_player(screen, world_size, tilemap, zoom):
