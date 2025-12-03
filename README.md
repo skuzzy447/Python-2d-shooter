@@ -1,8 +1,8 @@
 # Simple Top-Down Shooter
 
-WASD - Walk
-Shift - Sprint
-Left Mouse Button - Fire Arrow
+WASD - Walk  
+Shift - Sprint  
+Left Mouse Button - Fire Arrow  
 
 
 ## Todo List
