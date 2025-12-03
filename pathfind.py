@@ -26,7 +26,7 @@ class Node:
         self.h = math.sqrt((self.position[0] - goal.position[0]) ** 2 + (self.position[1] - goal.position[1]) ** 2)
         self.f = self.g + self.h
     
-def astar(start_pos, goal_pos, tilemap):
+def astar(start_pos, goal_pos, tilemap, trees):
     start_node = Node(start_pos, tilemap[start_pos[1]][start_pos[0]])
     goal_node = Node(goal_pos, tilemap[goal_pos[1]][goal_pos[0]])
     
@@ -70,7 +70,10 @@ def astar(start_pos, goal_pos, tilemap):
                 continue
 
             tile = tilemap[node_position[1]][node_position[0]]
+            #parent_tile = tilemap[current_node.position[1]][current_node.position[0]]
             if tile >= 32:
+                continue
+            if (node_position[0], node_position[1]) in trees:
                 continue
 
             neighbor_node = Node(node_position, tile, current_node)

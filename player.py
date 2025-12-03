@@ -56,7 +56,7 @@ class Player(Entity):
         return self.health > 0
 
     def shoot(self, screen, mouse_pos, enemies, zoom):
-        direction = pygame.Vector2(mouse_pos[0] - 512, mouse_pos[1] - 512).normalize()
+        direction = pygame.Vector2(mouse_pos[0] - 528, mouse_pos[1] - 528).normalize()
         rotation = math.degrees(math.atan2(-direction.y, direction.x))
         new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
         return new_arrow

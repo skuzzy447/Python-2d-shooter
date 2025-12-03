@@ -61,13 +61,13 @@ def main():
         keys = pygame.key.get_pressed()
         if not player.moving:
             if keys[pygame.K_a] and player.position.x > 0:
-                if not tilemap[int(player.position.y)][int(player.position.x - 1)] >= 32:
+                if not tilemap[int(player.position.y)][int(player.position.x - 1)] >= 32 and (player.position.x-1, player.position.y) not in tree_list:
                     player.move('left')
             elif keys[pygame.K_d] and player.position.x < world_size - 1:
-                if not tilemap[int(player.position.y)][int(player.position.x + 1)] >= 32:
+                if not tilemap[int(player.position.y)][int(player.position.x + 1)] >= 32 and (player.position.x+1, player.position.y) not in tree_list:
                     player.move('right')
             elif keys[pygame.K_w] and player.position.y > 0:
-                if not tilemap[int(player.position.y - 1)][int(player.position.x)] >= 32 and (player.position.x, player.position.y) not in tree_list:
+                if not tilemap[int(player.position.y - 1)][int(player.position.x)] >= 32 and (player.position.x, player.position.y-1) not in tree_list:
                     player.move('up')
             elif keys[pygame.K_s] and player.position.y < world_size - 1:
                 if not tilemap[int(player.position.y + 1)][int(player.position.x)] >= 32 and (player.position.x, player.position.y+1) not in tree_list:
@@ -89,10 +89,7 @@ def main():
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
         player.draw(player.position, zoom)
         for entity in updateable:
-                if isinstance(entity, Enemy):
-                    entity.update(player.position, tilemap, dt, zoom)
-                else:
-                    entity.update(player.position, dt, zoom)
+                entity.update(player.position, tilemap, dt, zoom, tree_list)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)

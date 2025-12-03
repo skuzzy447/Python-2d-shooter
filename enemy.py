@@ -11,16 +11,16 @@ class Enemy(Entity):
         self.path = []
         self.pathfind_delay = 0
 
-    def pathfind(self, player_pos, tilemap):
-        self.path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap)
+    def pathfind(self, player_pos, tilemap, trees):
+        self.path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap, trees)
 
     def move(self):
         if len(self.path) > 1:
             self.position.x, self.position.y = self.path.pop(1)
     
-    def update(self, player_pos, tilemap, dt, zoom):
+    def update(self, player_pos, tilemap, dt, zoom, trees):
         if self.pathfind_delay <= 0 and self.position.x in range(int(player_pos.x - 20), int(player_pos.x + 20)) and self.position.y in range(int(player_pos.y - 20), int(player_pos.y + 20)):
-            self.pathfind(player_pos, tilemap)
+            self.pathfind(player_pos, tilemap, trees)
             self.pathfind_delay = 2.0
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
