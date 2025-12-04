@@ -25,9 +25,11 @@ class Player(Entity):
                            (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
+        self.center = 512+14*zoom
 
     def sprint(self):
         self.move_speed = 2
+
     def take_damage(self, amount):
         self.health -= amount
         if self.health < 0:
@@ -37,7 +39,7 @@ class Player(Entity):
         return self.health > 0
 
     def shoot(self, screen, mouse_pos, enemies, zoom):
-        direction = pygame.Vector2(mouse_pos[0] - 528, mouse_pos[1] - 528).normalize()
+        direction = pygame.Vector2(mouse_pos[0] - self.center, mouse_pos[1] - self.center).normalize()
         rotation = math.degrees(math.atan2(-direction.y, direction.x))
         new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
         return new_arrow
@@ -57,6 +59,7 @@ class Player(Entity):
         elif self.direction == 'right':
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
+        self.center = 512+14*zoom
 
     def can_move(self, tilemap, trees):
         new_x, new_y = self.position.x, self.position.y
@@ -97,9 +100,8 @@ class Player(Entity):
 
     def update(self, dt):
         if self.moving:
-            print((dt/8)*self.move_speed)
             self.frame_delay -= dt * self.move_speed
-            self.move_delay -= (dt / 4)
+            self.move_delay -= (dt / 8) * self.move_speed
             if self.frame_delay <= 0:
                 self.frame_delay = 0.2
                 self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
@@ -107,13 +109,13 @@ class Player(Entity):
                 self.move_delay = 0.005
                 new_x, new_y = self.position.x, self.position.y
                 if self.direction == 'up':
-                    new_y -= Fraction(1,int(16 / self.move_speed))
+                    new_y -= Fraction(1,int(16))
                 elif self.direction == 'down':
-                    new_y += Fraction(1,int(16 / self.move_speed))
+                    new_y += Fraction(1,int(16))
                 elif self.direction == 'left':
-                    new_x -= Fraction(1,int(16 / self.move_speed))
+                    new_x -= Fraction(1,int(16))
                 elif self.direction == 'right':
-                    new_x += Fraction(1,int(16 / self.move_speed))
+                    new_x += Fraction(1,int(16))
                 self.position.x = new_x 
                 self.position.y = new_y
                 if self.position.x == round(self.position.x) and self.position.y == round(self.position.y):

@@ -21,6 +21,8 @@ def main():
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     player = spawn_player(screen, world_size, tilemap, zoom)
+    center = pygame.Surface((1,1))
+    center.fill((0,0,255))
 
     def zoom_entities(zoom_add):
         nonlocal ground_tiles
@@ -33,6 +35,7 @@ def main():
     while running:
         if len(enemies) < max_enemies:
             new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap)
+            new_enemy.zoom(zoom)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -84,7 +87,9 @@ def main():
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
-        player.draw(player.position, zoom)
+        #player.draw(player.position, zoom)
+        screen.blit(player.sprite, (512,512))
+        screen.blit(center, (512+16*zoom,512+16*zoom))
         for entity in updateable:
                 entity.update(player.position, tilemap, dt, zoom, tree_list)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):

@@ -3,6 +3,7 @@
 WASD - Walk  
 Shift - Sprint  
 Left Mouse Button - Fire Arrow  
+Scroll - Zoom
 
 
 ## Todo List

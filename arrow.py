@@ -24,7 +24,6 @@ class Arrow(Entity):
                 self.kill()
                 if enemy.health <= 0:
                     enemy.kill()
-        #print(self.position, trees)
         x = Decimal(self.position.x).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         screen_x = float(x) * 32 * zoom - (player_position.x * 32 * zoom - 512)
@@ -33,16 +32,8 @@ class Arrow(Entity):
             self.stuck = True  
             self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()
             self.rotation = math.degrees(math.atan2(-self.direction.y, self.direction.x))
-            #self.position.x, self.position.y = x, y
-        #if (int(x), int(y)+1) in trees:
-            #print("stuck")
-            #self.stuck = True
-            #self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()
-            #self.rotation = math.degrees(math.atan2(-self.direction.y, self.direction.x))
-            #self.position.x, self.position.y = x, y
     
     def zoom(self, zoom):
-        print("Zooming arrow sprite")
         self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
         self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
 

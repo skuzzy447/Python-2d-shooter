@@ -70,7 +70,6 @@ def astar(start_pos, goal_pos, tilemap, trees):
                 continue
 
             tile = tilemap[node_position[1]][node_position[0]]
-            #parent_tile = tilemap[current_node.position[1]][current_node.position[0]]
             if tile >= 32:
                 continue
             if (node_position[0], node_position[1]) in trees:
