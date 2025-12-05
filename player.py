@@ -39,7 +39,7 @@ class Player(Entity):
         return self.health > 0
 
     def shoot(self, screen, direction, enemies, zoom):
-        rotation = math.degrees(math.atan2(direction.y, direction.x))
+        rotation = math.degrees(math.atan2(-direction.y, direction.x))
         new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
         return new_arrow
     
@@ -77,8 +77,7 @@ class Player(Entity):
         
     def move(self, direction, tilemap, trees):
         if self.direction == direction and not self.moving:
-            if self.can_move(tilemap, trees):
-                self.moving = True
+            self.moving = self.can_move(tilemap, trees)
         else:
             self.direction = direction
             if not self.moving:
@@ -100,21 +99,21 @@ class Player(Entity):
     def update(self, dt):
         if self.moving:
             self.frame_delay -= dt * self.move_speed
-            self.move_delay -= (dt / 8) * self.move_speed
+            self.move_delay -= (dt / 4) * self.move_speed
             if self.frame_delay <= 0:
-                self.frame_delay = 0.2
+                self.frame_delay = 0.25
                 self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
             if self.move_delay <= 0:
                 self.move_delay = 0.005
                 new_x, new_y = self.position.x, self.position.y
                 if self.direction == 'up':
-                    new_y -= Fraction(1,int(16))
+                    new_y -= Fraction(1,32) * self.move_speed
                 elif self.direction == 'down':
-                    new_y += Fraction(1,int(16))
+                    new_y += Fraction(1,32) * self.move_speed
                 elif self.direction == 'left':
-                    new_x -= Fraction(1,int(16))
+                    new_x -= Fraction(1,32) * self.move_speed
                 elif self.direction == 'right':
-                    new_x += Fraction(1,int(16))
+                    new_x += Fraction(1,32) * self.move_speed
                 self.position.x = new_x 
                 self.position.y = new_y
                 if self.position.x == round(self.position.x) and self.position.y == round(self.position.y):

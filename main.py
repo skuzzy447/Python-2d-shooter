@@ -34,7 +34,7 @@ def main():
         player.zoom(zoom)
     while running:
         if len(enemies) < max_enemies:
-            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap)
+            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
             new_enemy.zoom(zoom)
 
         for event in pygame.event.get():
@@ -85,24 +85,23 @@ def main():
         player.update(dt)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
-                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16
-                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512) - 16
+                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
+                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512) - 16 * zoom
                 screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
-        #player.draw(player.position, zoom)
         screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
         screen.blit(center, (512,512))
         for entity in updateable:
                 entity.update(player.position, tilemap, dt, zoom, tree_list)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
-                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)-16
-                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512 )-16
+                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
+                screen_y = (y - 1) * 32 * zoom - (player.position.y * 32 * zoom - 512 ) - 16 * zoom
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
-                        screen.blit(ground_tiles[29], (screen_x, screen_y - 32))
+                        screen.blit(ground_tiles[29], (screen_x, screen_y))
         
 
 
