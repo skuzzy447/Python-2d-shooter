@@ -41,10 +41,6 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
             
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    updateable.add(player.shoot(screen, pygame.mouse.get_pos(), enemies, zoom))
-            
             if event.type == pygame.MOUSEWHEEL:
                 if event.y > 0:
                     if zoom < 2.5:
@@ -62,6 +58,14 @@ def main():
                         zoom_entities(-0.5)
                 if event.key == pygame.K_LSHIFT:
                      player.sprint()
+                if event.key == pygame.K_RIGHT:
+                     updateable.add(player.shoot(screen, pygame.Vector2(1,0), enemies, zoom))
+                if event.key == pygame.K_LEFT:
+                     updateable.add(player.shoot(screen, pygame.Vector2(-1,0), enemies, zoom))
+                if event.key == pygame.K_UP:
+                     updateable.add(player.shoot(screen, pygame.Vector2(0,-1), enemies, zoom))
+                if event.key == pygame.K_DOWN:
+                     updateable.add(player.shoot(screen, pygame.Vector2(0,1), enemies, zoom))
             
             if event.type == pygame.KEYUP:
                  if event.key == pygame.K_LSHIFT:
@@ -81,24 +85,24 @@ def main():
         player.update(dt)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
-                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)
-                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512)
+                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16
+                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512) - 16
                 screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
         #player.draw(player.position, zoom)
-        screen.blit(player.sprite, (512,512))
-        screen.blit(center, (512+16*zoom,512+16*zoom))
+        screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
+        screen.blit(center, (512,512))
         for entity in updateable:
                 entity.update(player.position, tilemap, dt, zoom, tree_list)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
-                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)
-                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512)
+                screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512)-16
+                screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512 )-16
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
-                        screen.blit(ground_tiles[29], (screen_x, (y - 1) * 32 * zoom - (player.position.y * 32 * zoom - 512)))
+                        screen.blit(ground_tiles[29], (screen_x, screen_y - 32))
         
 
 

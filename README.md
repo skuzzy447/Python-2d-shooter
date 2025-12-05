@@ -2,7 +2,7 @@
 
 WASD - Walk  
 Shift - Sprint  
-Left Mouse Button - Fire Arrow  
+Arrow Keys - Fire Arrow  
 Scroll - Zoom
 
 

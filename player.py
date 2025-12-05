@@ -25,7 +25,7 @@ class Player(Entity):
                            (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
-        self.center = 512+14*zoom
+        self.center = 512 - 16 * zoom
 
     def sprint(self):
         self.move_speed = 2
@@ -38,9 +38,8 @@ class Player(Entity):
     def is_alive(self):
         return self.health > 0
 
-    def shoot(self, screen, mouse_pos, enemies, zoom):
-        direction = pygame.Vector2(mouse_pos[0] - self.center, mouse_pos[1] - self.center).normalize()
-        rotation = math.degrees(math.atan2(-direction.y, direction.x))
+    def shoot(self, screen, direction, enemies, zoom):
+        rotation = math.degrees(math.atan2(direction.y, direction.x))
         new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
         return new_arrow
     

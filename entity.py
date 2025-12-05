@@ -15,7 +15,7 @@ class Entity(pygame.sprite.Sprite):
         screen_x = self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512)
         screen_y = self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 512)
         if screen_x > 0 and screen_y > 0:
-            self.screen.blit(self.sprite, (screen_x, screen_y))
+            self.screen.blit(self.sprite, (screen_x - 16 * zoom, screen_y - 16 * zoom))
 
     def zoom(self, zoom):
         pass

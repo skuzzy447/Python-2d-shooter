@@ -39,7 +39,7 @@ class Enemy(Entity):
             self.pathfind_delay -= dt
         if self.move_delay <= 0:
             self.move(dt)
-            self.move_delay = .05
+            self.move_delay = .04
         if self.move_delay > 0:
             self.move_delay -= dt
         self.draw(player_pos, zoom)
