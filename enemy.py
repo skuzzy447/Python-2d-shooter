@@ -1,5 +1,6 @@
 import pygame
 import random
+import multiprocessing
 from constants import PATH
 from pathfind import astar
 from entity import Entity
@@ -24,9 +25,10 @@ class Enemy(Entity):
         self.anim_delay = 0
         self.direction = 'down'
 
-    def pathfind(self, player_pos, tilemap, trees):
-        self.path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap, trees)
-
+    def pathfind(self, player_pos, tilemap, trees, pipe):
+        path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap, trees)
+        pipe.send(path)
+        pipe.close()
     def change_direction(self, direction):
         if direction == self.direction:
             return
@@ -75,8 +77,14 @@ class Enemy(Entity):
     
     def update(self, player_pos, tilemap, dt, zoom, trees):
         if self.pathfind_delay <= 0 and self.position.x in range(int(player_pos.x - 20), int(player_pos.x + 20)) and self.position.y in range(int(player_pos.y - 20), int(player_pos.y + 20)):
-            self.pathfind(player_pos, tilemap, trees)
-            self.pathfind_delay = 2.0
+            if self.position != player_pos:
+                parent_pipe, child_pipe = multiprocessing.Pipe()
+                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player_pos, tilemap, trees, child_pipe)))
+                pf_process.start()
+                self.path = parent_pipe.recv()
+                print("here")
+            #self.pathfind(player_pos, tilemap, trees)
+            self.pathfind_delay = 0.5
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
         if self.move_delay <= 0:

@@ -107,13 +107,13 @@ class Player(Entity):
                 self.move_delay = 0.005
                 new_x, new_y = self.position.x, self.position.y
                 if self.direction == 'up':
-                    new_y -= Fraction(1,32) * self.move_speed
+                    new_y -= Fraction(int(1 * self.move_speed),32)
                 elif self.direction == 'down':
-                    new_y += Fraction(1,32) * self.move_speed
+                    new_y += Fraction(int(1 * self.move_speed),32)
                 elif self.direction == 'left':
-                    new_x -= Fraction(1,32) * self.move_speed
+                    new_x -= Fraction(int(1 * self.move_speed),32)
                 elif self.direction == 'right':
-                    new_x += Fraction(1,32) * self.move_speed
+                    new_x += Fraction(int(1 * self.move_speed),32)
                 self.position.x = new_x 
                 self.position.y = new_y
                 if self.position.x == round(self.position.x) and self.position.y == round(self.position.y):
