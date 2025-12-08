@@ -13,6 +13,8 @@ class Arrow(Entity):
         self.enemies = enemies
         self.stuck = False
         self.despawn_timer = 5
+        self.hitfx = pygame.mixer.Sound(f"{PATH}/assets/fx/arrow_hit.wav")
+        self.hitfx.set_volume(0.25)
 
     def move(self, dt):
         self.position += self.direction * 20 * dt
@@ -20,6 +22,7 @@ class Arrow(Entity):
     def check_collision(self, enemies, trees, player_position, zoom):
         for enemy in enemies:
             if int(self.position.x) == int(enemy.position.x) and int(self.position.y) == int(enemy.position.y):
+                self.hitfx.play()
                 enemy.health -= 25
                 enemy.position += self.direction / 2
                 self.kill()

@@ -10,6 +10,8 @@ from constants import PATH
 class Player(Entity):
     def __init__(self, screen, position, zoom, health=100):
         super().__init__(position, screen, None)
+        self.shootfx = pygame.mixer.Sound(f"{PATH}/assets/fx/shoot.wav")
+        self.shootfx.set_volume(0.5)
         self.screen = screen
         self.health = health
         self.position = position
@@ -41,6 +43,7 @@ class Player(Entity):
     def shoot(self, screen, direction, enemies, zoom):
         rotation = math.degrees(math.atan2(-direction.y, direction.x))
         new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
+        self.shootfx.play()
         return new_arrow
     
     def zoom(self, zoom):
@@ -103,6 +106,10 @@ class Player(Entity):
             if self.frame_delay <= 0:
                 self.frame_delay = 0.25
                 self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
+                if self.sprite == self.animation[1] or self.sprite == self.animation[3]:
+                    sound = random.randint(0,1)
+                    self.step_fx = pygame.mixer.Sound(f"{PATH}/assets/fx/footstep_grass_{sound}.wav")
+                    self.step_fx.play()
             if self.move_delay <= 0:
                 self.move_delay = 0.005
                 new_x, new_y = self.position.x, self.position.y

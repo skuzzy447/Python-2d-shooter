@@ -1,5 +1,5 @@
 import pygame
-import json
+import random
 from generate_world import generate
 from constants import *
 from settings import *
@@ -10,6 +10,7 @@ from update_render import update_render
 def main(): 
     global zoom
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode((1024, 1024))
     clock = pygame.time.Clock()   
     dt = 0
@@ -21,6 +22,8 @@ def main():
     enemies = pygame.sprite.Group()
     player = spawn_player(screen, world_size, tilemap, zoom)
 
+    music_delay = 10
+
     def zoom_entities(zoom_add):
         nonlocal ground_tiles
         global zoom
@@ -29,10 +32,18 @@ def main():
         for entity in updateable:
             entity.zoom(zoom)
         player.zoom(zoom)
+
     while running:
         while len(enemies) < max_enemies:
             new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
             new_enemy.zoom(zoom)
+        if music_delay > 0:
+             music_delay -= dt / random.randint(1,2)
+        if music_delay <= 0:
+             music_delay = 120
+             i = random.randint(0,1)
+             song = pygame.mixer.Sound(f"{PATH}/assets/music/overworld_day_{i}.wav")
+             song.play()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

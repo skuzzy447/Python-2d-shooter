@@ -29,6 +29,7 @@ class Enemy(Entity):
         path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap, trees)
         pipe.send(path)
         pipe.close()
+
     def change_direction(self, direction):
         if direction == self.direction:
             return
@@ -82,7 +83,6 @@ class Enemy(Entity):
                 pf_process = multiprocessing.Process(target = self.pathfind, args = ((player_pos, tilemap, trees, child_pipe)))
                 pf_process.start()
                 self.path = parent_pipe.recv()
-                print("here")
             #self.pathfind(player_pos, tilemap, trees)
             self.pathfind_delay = 0.5
         if self.pathfind_delay > 0:
