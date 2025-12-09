@@ -21,6 +21,7 @@ def main():
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     player = spawn_player(screen, world_size, tilemap, zoom)
+    colliders = []
 
     music_delay = 10
 
@@ -34,9 +35,9 @@ def main():
         player.zoom(zoom)
 
     while running:
-        while len(enemies) < max_enemies:
-            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
-            new_enemy.zoom(zoom)
+        #while len(enemies) < max_enemies:
+        #    new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
+        #    new_enemy.zoom(zoom)
         if music_delay > 0:
              music_delay -= dt / random.randint(1,2)
         if music_delay <= 0:
@@ -79,17 +80,23 @@ def main():
                  if event.key == pygame.K_LSHIFT:
                       player.move_speed = 1
         keys = pygame.key.get_pressed()
-        if not player.moving:
-            if keys[pygame.K_a] and player.position.x > 0:
-                    player.move('left', tilemap, tree_list)
-            elif keys[pygame.K_d] and player.position.x < world_size - 1:
-                    player.move('right', tilemap, tree_list)
-            elif keys[pygame.K_w] and player.position.y > 0:
-                    player.move('up', tilemap, tree_list)
-            elif keys[pygame.K_s] and player.position.y < world_size - 1:
-                    player.move('down', tilemap, tree_list)
+        if keys[pygame.K_a] and player.position.x > 0:
+                player.moving = True
+                player.move('left', colliders, dt, zoom)
+        elif keys[pygame.K_d] and player.position.x < world_size - 1:
+                player.moving = True
+                player.move('right', colliders, dt, zoom)
+        elif keys[pygame.K_w] and player.position.y > 0:
+                player.moving = True
+                player.move('up', colliders, dt, zoom)
+        elif keys[pygame.K_s] and player.position.y < world_size - 1:
+                player.moving = True
+                player.move('down', colliders, dt, zoom)
+        #if not keys[pygame.K_s] and not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_d]:
+        else:
+             player.moving = False
 
-        update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt)
+        colliders = update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt)
         dt = clock.tick(60) / 1000
 if __name__ == "__main__":
     main()
