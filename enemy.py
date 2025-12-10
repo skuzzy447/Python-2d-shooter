@@ -24,6 +24,8 @@ class Enemy(Entity):
         self.sprite = self.animation[0]
         self.anim_delay = 0
         self.direction = 'down'
+        self.collider = pygame.Rect()
+        self.collider.size = (22 * zoom, 22 * zoom)
 
     def pathfind(self, player_pos, tilemap, trees, pipe):
         path = []
@@ -86,7 +88,6 @@ class Enemy(Entity):
                 new_path = parent_pipe.recv()
                 if new_path != None:
                     self.path = new_path
-            #self.pathfind(player_pos, tilemap, trees)
             self.pathfind_delay = 0.5
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
@@ -95,6 +96,8 @@ class Enemy(Entity):
             self.move_delay = .02
         if self.move_delay > 0:
             self.move_delay -= dt
+        if int(self.position.x) in range(int(player_pos.x - 20), int(player_pos.x + 20)) and int(self.position.y) in range(int(player_pos.y - 20), int(player_pos.y + 20)):
+            self.collider.center = (self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 510))
         self.draw(player_pos, zoom)
 
     def zoom(self, zoom):
@@ -105,6 +108,7 @@ class Enemy(Entity):
                            (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
+        self.collider.size = (22 * zoom, 22 * zoom)
 
 def add_enemy(screen, updateable, enemies, world_size, tilemap, zoom):
     position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))

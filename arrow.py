@@ -19,9 +19,9 @@ class Arrow(Entity):
     def move(self, dt):
         self.position += self.direction * 20 * dt
 
-    def check_collision(self, enemies, trees, player_position, zoom):
+    def check_collision(self, enemies, trees, player_pos, zoom):
         for enemy in enemies:
-            if int(self.position.x) == int(enemy.position.x) and int(self.position.y) == int(enemy.position.y):
+            if enemy.collider.collidepoint((self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 512))):
                 self.hitfx.play()
                 enemy.health -= 25
                 enemy.position += self.direction / 2
@@ -30,8 +30,8 @@ class Arrow(Entity):
                     enemy.kill()
         x = Decimal(self.position.x).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
-        screen_x = float(x) * 32 * zoom - (player_position.x * 32 * zoom - 512)
-        screen_y = float(y) * 32 * zoom - (player_position.y * 32 * zoom - 512)
+        screen_x = float(x) * 32 * zoom - (player_pos.x * 32 * zoom - 512)
+        screen_y = float(y) * 32 * zoom - (player_pos.y * 32 * zoom - 512)
         if (int(x), int(y)) in trees:
             self.stuck = True  
             self.direction = pygame.Vector2(screen_x - 512, screen_y - 512).normalize()

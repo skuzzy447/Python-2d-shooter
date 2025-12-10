@@ -92,7 +92,6 @@ def main():
         elif keys[pygame.K_s] and player.position.y < world_size - 1:
                 player.moving = True
                 player.move('down', colliders, dt, zoom)
-        #if not keys[pygame.K_s] and not keys[pygame.K_w] and not keys[pygame.K_a] and not keys[pygame.K_d]:
         else:
              player.moving = False
 
