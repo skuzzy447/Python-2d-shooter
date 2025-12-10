@@ -8,7 +8,6 @@ Scroll - Zoom
 
 ## Todo List
 
- * Rewrite arrow colisions
  * Fix enemy pathfinding
  * Add enemy attacks  
  * Add player base  
@@ -16,6 +15,5 @@ Scroll - Zoom
 
  ### Known Bugs
 
- * The player will sometimes get stuck sprinting even when WASD keys are released until shift is released. during this state the player ignores collisions. - Will be fixed after movement/collision rewrite
- * Arrows sometimes dont collide with enemies if the enemy was recently hit, there is no invincibility period programmed yet so that shouldn't happen. - Should also be fixed after collision rewrite
  * If the player gets near a wall and an enemy is pathfinding it will fail to pathfind
+ * Enemies do not pathfind to exact player position. I need to learn more about pathfinding algorithms before it can be fixed
