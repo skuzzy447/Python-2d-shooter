@@ -14,6 +14,5 @@ Scroll - Zoom
  * Add inventory and drops
 
  ### Known Bugs
-
- * If the player gets near a wall and an enemy is pathfinding it will fail to pathfind
+ 
  * Enemies do not pathfind to exact player position. I need to learn more about pathfinding algorithms before it can be fixed
