@@ -27,8 +27,8 @@ class Player(Entity):
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
         self.collider = pygame.Rect()
-        self.collider.size = (13 * zoom, 9 * zoom)
-        self.collider.center = (511, 512 + 6 * zoom)
+        self.collider.size = (14 * zoom, 24 * zoom)
+        self.collider.center = (511, 510)
 
     def sprint(self):
         self.move_speed = 2
@@ -63,32 +63,31 @@ class Player(Entity):
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
 
-        self.collider.size = (13 * zoom, 9 * zoom)
-        self.collider.center = (511, 512 + 6 * zoom)
+        self.collider.size = (16 * zoom, 28 * zoom)
+        self.collider.center = (511, 510)
         
     def move(self, direction, colliders, dt, zoom):
         if self.direction != direction:
             self.direction = direction
             if direction == 'up':
-                self.collider.center = (511, 512 + 6 * zoom - 2)
+                self.collider.center = (511, 508)
                 self.animation = self.animations[2]
                 self.sprite = self.animation[0]
             elif direction == 'down':
-                self.collider.center = (511, 512 + 6 * zoom + 2)
+                self.collider.center = (511, 512)
                 self.animation = self.animations[0]
                 self.sprite = self.animation[0]
             elif direction == 'left':
-                self.collider.center = (508, 512 + 6 * zoom)
+                self.collider.center = (508, 510)
                 self.animation = self.animations[3]
                 self.sprite = self.animation[0]
             elif direction == 'right':
-                self.collider.center = (514, 512 + 6 * zoom)
+                self.collider.center = (514, 510)
                 self.animation = self.animations[1]
                 self.sprite = self.animation[0]
         if self.collider.collidelist(colliders) != -1:
                 return
         else:
-            print("moving")
             if direction == 'up':
                 self.position.y -= dt * 2 * self.move_speed
             elif direction == 'down':

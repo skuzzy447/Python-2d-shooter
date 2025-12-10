@@ -26,7 +26,8 @@ class Enemy(Entity):
         self.direction = 'down'
 
     def pathfind(self, player_pos, tilemap, trees, pipe):
-        path = astar((int(self.position.x), int(self.position.y)), (int(player_pos.x), int(player_pos.y)), tilemap, trees)
+        path = []
+        path = astar((int(self.position.x), int(self.position.y)), (player_pos.x, player_pos.y), tilemap, trees)
         pipe.send(path)
         pipe.close()
 
@@ -77,12 +78,14 @@ class Enemy(Entity):
                     self.sprite = self.animation[0]
     
     def update(self, player_pos, tilemap, dt, zoom, trees):
-        if self.pathfind_delay <= 0 and self.position.x in range(int(player_pos.x - 20), int(player_pos.x + 20)) and self.position.y in range(int(player_pos.y - 20), int(player_pos.y + 20)):
+        if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player_pos.x - 20), int(player_pos.x + 20)) and int(self.position.y) in range(int(player_pos.y - 20), int(player_pos.y + 20)):
             if self.position != player_pos:
                 parent_pipe, child_pipe = multiprocessing.Pipe()
                 pf_process = multiprocessing.Process(target = self.pathfind, args = ((player_pos, tilemap, trees, child_pipe)))
                 pf_process.start()
-                self.path = parent_pipe.recv()
+                new_path = parent_pipe.recv()
+                if new_path != None:
+                    self.path = new_path
             #self.pathfind(player_pos, tilemap, trees)
             self.pathfind_delay = 0.5
         if self.pathfind_delay > 0:

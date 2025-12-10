@@ -35,9 +35,9 @@ def main():
         player.zoom(zoom)
 
     while running:
-        #while len(enemies) < max_enemies:
-        #    new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
-        #    new_enemy.zoom(zoom)
+        while len(enemies) < max_enemies:
+            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
+            new_enemy.zoom(zoom)
         if music_delay > 0:
              music_delay -= dt / random.randint(1,2)
         if music_delay <= 0:
