@@ -26,6 +26,8 @@ class Enemy(Entity):
         self.direction = 'down'
         self.collider = pygame.Rect()
         self.collider.size = (22 * zoom, 22 * zoom)
+        self.knockback_counter = 0
+        self.knockback_direction = 'down'
 
     def pathfind(self, player_pos, tilemap, trees, pipe):
         path = []
@@ -78,12 +80,36 @@ class Enemy(Entity):
                     self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
-    
-    def update(self, player_pos, tilemap, dt, zoom, trees):
-        if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player_pos.x - 20), int(player_pos.x + 20)) and int(self.position.y) in range(int(player_pos.y - 20), int(player_pos.y + 20)):
-            if self.position != player_pos:
+
+    def check_collision(self, player):
+        if self.collider.colliderect(player.collider):
+            self.move_delay = 0.3
+            self.knockback_counter = 4
+            player.hit(25, self.direction)
+            if self.direction == "up":
+                self.knockback_direction = 'down'
+            if self.direction == "down":
+                self.knockback_direction = 'up'
+            if self.direction == "left":
+                self.knockback_direction = 'right'
+            if self.direction == "right":
+                self.knockback_direction = 'left'
+
+    def knockback(self, dt):
+        if self.knockback_direction == 'up':
+            self.position.y -= Fraction(1/8)
+        elif self.knockback_direction == 'down':
+            self.position.y += Fraction(1/8)
+        elif self.knockback_direction == 'left':
+            self.position.x -= Fraction(1/8)
+        elif self.knockback_direction == 'right':
+            self.position.x += Fraction(1/8)
+
+    def update(self, player, tilemap, dt, zoom, trees):
+        if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
+            if self.position != player.position:
                 parent_pipe, child_pipe = multiprocessing.Pipe()
-                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player_pos, tilemap, trees, child_pipe)))
+                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, child_pipe)))
                 pf_process.start()
                 new_path = parent_pipe.recv()
                 if new_path != None:
@@ -96,9 +122,13 @@ class Enemy(Entity):
             self.move_delay = .02
         if self.move_delay > 0:
             self.move_delay -= dt
-        if int(self.position.x) in range(int(player_pos.x - 20), int(player_pos.x + 20)) and int(self.position.y) in range(int(player_pos.y - 20), int(player_pos.y + 20)):
-            self.collider.center = (self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 510))
-        self.draw(player_pos, zoom)
+        if int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
+            self.collider.center = (self.position.x * 32 * zoom - (player.position.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player.position.y * 32 * zoom - 510))
+        if self.knockback_counter > 0:
+            self.knockback_counter -= 1
+            self.knockback(dt)
+        self.check_collision(player)
+        self.draw(player.position, zoom)
 
     def zoom(self, zoom):
         self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/slime_sprite_sheet.png").convert_alpha(), zoom)

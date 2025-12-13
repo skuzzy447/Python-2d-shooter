@@ -1,6 +1,7 @@
 import pygame
 import math
 import random
+import sys
 from fractions import Fraction
 from arrow import Arrow
 from entity import Entity
@@ -29,17 +30,19 @@ class Player(Entity):
         self.collider = pygame.Rect()
         self.collider.size = (14 * zoom, 24 * zoom)
         self.collider.center = (511, 510)
+        self.knockback_counter = 0
+        self.knockback_direction = 'down'
 
     def sprint(self):
         self.move_speed = 2
 
-    def take_damage(self, amount):
-        self.health -= amount
-        if self.health < 0:
-            self.health = 0
-
-    def is_alive(self):
-        return self.health > 0
+    def hit(self, damage, direction):
+        self.knockback_counter = 4
+        self.knockback_direction = direction
+        self.health -= damage
+        if self.health <= 0:
+            pygame.quit()
+            sys.exit()
 
     def shoot(self, screen, direction, enemies, zoom):
         rotation = math.degrees(math.atan2(-direction.y, direction.x))
@@ -66,7 +69,7 @@ class Player(Entity):
         self.collider.size = (16 * zoom, 28 * zoom)
         self.collider.center = (511, 510)
         
-    def move(self, direction, colliders, dt, zoom):
+    def move(self, direction, colliders, dt):
         if self.direction != direction:
             self.direction = direction
             if direction == 'up':
@@ -85,9 +88,7 @@ class Player(Entity):
                 self.collider.center = (514, 510)
                 self.animation = self.animations[1]
                 self.sprite = self.animation[0]
-        if self.collider.collidelist(colliders) != -1:
-                return
-        else:
+        if self.collider.collidelist(colliders) == -1:
             if direction == 'up':
                 self.position.y -= dt * 2 * self.move_speed
             elif direction == 'down':
@@ -97,7 +98,25 @@ class Player(Entity):
             elif direction == 'right':
                 self.position.x += dt * 2 * self.move_speed
 
-    def update(self, dt):
+    def knockback(self, colliders, dt):
+        if self.knockback_direction == 'up':
+            self.collider.center = (511, 508)
+            if self.collider.collidelist(colliders) == -1:
+                self.position.y -= dt * 2
+        elif self.knockback_direction == 'down':
+            self.collider.center = (511, 512)
+            if self.collider.collidelist(colliders) == -1:
+                self.position.y += dt * 2
+        elif self.knockback_direction == 'left':
+            self.collider.center = (508, 510)
+            if self.collider.collidelist(colliders) == -1:
+                self.position.x -= dt * 2
+        elif self.knockback_direction == 'right':
+            self.collider.center = (514, 510)
+            if self.collider.collidelist(colliders) == -1:
+                self.position.x += dt * 2
+
+    def update(self, colliders, dt):
         if self.moving:
             self.frame_delay -= dt * self.move_speed
             if self.frame_delay <= 0:
@@ -115,6 +134,9 @@ class Player(Entity):
                 self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
                 self.frame_delay = 0.2
                 self.sprite = self.animation[0]
+        if self.knockback_counter > 0:
+            self.knockback_counter -= 1
+            self.knockback(colliders, dt)
 
 def spawn_player(screen, world_size, tilemap, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)

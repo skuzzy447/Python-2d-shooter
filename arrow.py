@@ -28,6 +28,7 @@ class Arrow(Entity):
                 self.kill()
                 if enemy.health <= 0:
                     enemy.kill()
+                break
         x = Decimal(self.position.x).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         screen_x = float(x) * 32 * zoom - (player_pos.x * 32 * zoom - 512)
@@ -41,15 +42,15 @@ class Arrow(Entity):
         self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
         self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
 
-    def update(self, player_pos, tilemap, dt, zoom, trees):
+    def update(self, player, tilemap, dt, zoom, trees):
         if not self.stuck:
             self.move(dt)
-            self.draw(player_pos, zoom)
-            self.check_collision(self.enemies, trees, player_pos, zoom)
+            self.draw(player.position, zoom)
+            self.check_collision(self.enemies, trees, player.position, zoom)
         else:
-            self.draw(player_pos, zoom)
+            self.draw(player.position, zoom)
             self.despawn_timer -= dt
             if self.despawn_timer <= 0:
                 self.kill()
-        if self.position.x > player_pos.x + 16 or self.position.x < player_pos.x - 16 or self.position.y > player_pos.y + 16 or self.position.y < player_pos.y - 16:
+        if self.position.x > player.position.x + 16 or self.position.x < player.position.x - 16 or self.position.y > player.position.y + 16 or self.position.y < player.position.y - 16:
             self.kill()

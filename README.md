@@ -8,11 +8,12 @@ Scroll - Zoom
 
 ## Todo List
 
- * Fix enemy pathfinding
- * Add enemy attacks  
- * Add player base  
+ * Add attack/hit/death animations
+ * Add day/night cycle
+ * Add UI and menus  
  * Add inventory and drops
+ * Fix enemy pathfinding
 
  ### Known Bugs
- 
+
  * Enemies do not pathfind to exact player position. I need to learn more about pathfinding algorithms before it can be fixed

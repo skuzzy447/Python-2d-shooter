@@ -82,20 +82,22 @@ def main():
         keys = pygame.key.get_pressed()
         if keys[pygame.K_a] and player.position.x > 0:
                 player.moving = True
-                player.move('left', colliders, dt, zoom)
+                player.move('left', colliders, dt)
         elif keys[pygame.K_d] and player.position.x < world_size - 1:
                 player.moving = True
-                player.move('right', colliders, dt, zoom)
+                player.move('right', colliders, dt)
         elif keys[pygame.K_w] and player.position.y > 0:
                 player.moving = True
-                player.move('up', colliders, dt, zoom)
+                player.move('up', colliders, dt)
         elif keys[pygame.K_s] and player.position.y < world_size - 1:
                 player.moving = True
-                player.move('down', colliders, dt, zoom)
+                player.move('down', colliders, dt)
         else:
              player.moving = False
 
         colliders = update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt)
         dt = clock.tick(60) / 1000
+    pygame.quit()
+    sys.exit()
 if __name__ == "__main__":
     main()
