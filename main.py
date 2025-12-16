@@ -25,6 +25,20 @@ def main():
 
     music_delay = 10
 
+    light = pygame.Surface((1024, 1024),pygame.SRCALPHA)
+    light.fill((10, 10, 20))
+    current_color = next(COLORS)
+    next_color = next(COLORS)
+    start_time = pygame.time.get_ticks()
+    def inter_color(color1, color2, factor):
+         r1,g1,b1,a1 = color1
+         r2,g2,b2,a2 = color2
+         r = int(r1+(r2-r1)*factor)
+         g = int(g1+(g2-g1)*factor)
+         b = int(b1+(b2-b1)*factor)
+         a = int(a1+(a2-a1)*factor)
+         return r,g,b,a
+
     def zoom_entities(zoom_add):
         nonlocal ground_tiles
         global zoom
@@ -35,6 +49,18 @@ def main():
         player.zoom(zoom)
 
     while running:
+        elapsed_time = pygame.time.get_ticks() - start_time
+        factor = min(elapsed_time / CYCLE_DURATION, 1.0)
+        if factor >= 1.0:
+             current_color = next_color
+             next_color = next(COLORS)
+             start_time = pygame.time.get_ticks()
+             factor = 0.0
+
+        light_color = inter_color(current_color, next_color, factor)
+        light.fill(light_color)
+        print(light_color)
+
         while len(enemies) < max_enemies:
             new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
             new_enemy.zoom(zoom)
@@ -95,7 +121,7 @@ def main():
         else:
              player.moving = False
 
-        colliders = update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt)
+        colliders = update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt, light)
         dt = clock.tick(60) / 1000
     pygame.quit()
     sys.exit()

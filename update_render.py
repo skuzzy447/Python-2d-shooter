@@ -1,6 +1,6 @@
 import pygame
 
-def update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt):
+def update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, zoom, updateable, dt, light):
         colliders = []
         screen.fill((44.7,45.9,10.6))
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
@@ -25,6 +25,7 @@ def update_render(screen, player, world_size, ground_tiles, tilemap, tree_list, 
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[29], (screen_x, screen_y))
+        screen.blit(light,(0,0))
         pygame.display.flip()
         return colliders
         
