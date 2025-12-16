@@ -8,9 +8,10 @@ Scroll - Zoom
 
 ## Todo List
 
- * Add attack/hit/death animations
- * Add UI and menus  
+ * Add UI and menus
+ * Add passive mobs
  * Add inventory and drops
+ * Add new weapons
  * Fix enemy pathfinding
 
  ### Known Bugs

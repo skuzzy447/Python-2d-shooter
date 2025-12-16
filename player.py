@@ -13,6 +13,7 @@ class Player(Entity):
         super().__init__(position, screen, None)
         self.shootfx = pygame.mixer.Sound(f"{PATH}/assets/fx/shoot.wav")
         self.shootfx.set_volume(0.5)
+        self.shoot_delay = 0
         self.screen = screen
         self.health = health
         self.position = position
@@ -44,11 +45,13 @@ class Player(Entity):
             pygame.quit()
             sys.exit()
 
-    def shoot(self, screen, direction, enemies, zoom):
-        rotation = math.degrees(math.atan2(-direction.y, direction.x))
-        new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
-        self.shootfx.play()
-        return new_arrow
+    def shoot(self, screen, direction, enemies, zoom, updateable):
+        if self.shoot_delay <= 0:
+            rotation = math.degrees(math.atan2(-direction.y, direction.x))
+            new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
+            self.shootfx.play()
+            self.shoot_delay = 0.25
+            updateable.add(new_arrow)
     
     def zoom(self, zoom):
         self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/player_sprite_sheet.png").convert_alpha(), zoom)
@@ -137,6 +140,8 @@ class Player(Entity):
         if self.knockback_counter > 0:
             self.knockback_counter -= 1
             self.knockback(colliders, dt)
+        if self.shoot_delay > 0:
+            self.shoot_delay -= dt
 
 def spawn_player(screen, world_size, tilemap, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)

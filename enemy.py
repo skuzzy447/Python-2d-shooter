@@ -85,7 +85,7 @@ class Enemy(Entity):
         if self.collider.colliderect(player.collider):
             self.move_delay = 0.3
             self.knockback_counter = 4
-            player.hit(25, self.direction)
+            player.hit(10, self.direction)
             if self.direction == "up":
                 self.knockback_direction = 'down'
             if self.direction == "down":
