@@ -14,6 +14,7 @@ def main():
     clock = pygame.time.Clock()   
     dt = 0
     running = True
+    paused = False
     ground_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/ground_tileset.png").convert_alpha(), zoom)
     tilemap, tree_list = generate(world_size)
     pygame.event.set_grab(True)
@@ -34,7 +35,15 @@ def main():
 
     hearts = get_tileset(pygame.image.load(f"{PATH}/assets/health_sprite_sheet.png").convert_alpha(), zoom, tile_width=160, tile_height=64)
     inventory_sprite = pygame.image.load(f"{PATH}/assets/inventory.png").convert_alpha()
-
+    menu = pygame.image.load(f"{PATH}/assets/menu.png").convert_alpha()
+    menu_rect = menu.get_rect()
+    menu_rect.center = screen.get_rect().center
+    menu0, menu1, menu2 = (menu_rect.center[0], menu_rect.center[1] - 110), menu_rect.center, (menu_rect.center[0], menu_rect.center[1] + 110)
+    menu_selection = menu0
+    menu_cursor = pygame.image.load(f"{PATH}/assets/menu_cursor.png").convert_alpha()
+    menu_cursor_rect = menu_cursor.get_rect()
+    menu_cursor_rect.center = menu_selection
+    
     def inter_color(color1, color2, factor):
          r1,g1,b1,a1 = color1
          r2,g2,b2,a2 = color2
@@ -92,41 +101,71 @@ def main():
                         zoom_entities(-0.5)
 
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_EQUALS:
-                    if zoom < 2.5:
-                        zoom_entities(0.5)
-                if event.key == pygame.K_MINUS:
-                    if zoom > 1.0:
-                        zoom_entities(-0.5)
-                if event.key == pygame.K_LSHIFT:
-                     player.sprint()
-                if event.key == pygame.K_RIGHT:
-                     player.shoot(screen, pygame.Vector2(1,0), enemies, zoom, updateable)
-                if event.key == pygame.K_LEFT:
-                     player.shoot(screen, pygame.Vector2(-1,0), enemies, zoom, updateable)
-                if event.key == pygame.K_UP:
-                     player.shoot(screen, pygame.Vector2(0,-1), enemies, zoom, updateable)
-                if event.key == pygame.K_DOWN:
-                     player.shoot(screen, pygame.Vector2(0,1), enemies, zoom, updateable)
+                if event.key == pygame.K_ESCAPE:
+                    paused = not paused
+                if not paused:
+                    if event.key == pygame.K_EQUALS:
+                        if zoom < 2.5:
+                            zoom_entities(0.5)
+                    if event.key == pygame.K_MINUS:
+                        if zoom > 1.0:
+                            zoom_entities(-0.5)
+                    if event.key == pygame.K_LSHIFT:
+                        player.sprint()
+                    if event.key == pygame.K_RIGHT:
+                        player.shoot(screen, pygame.Vector2(1,0), enemies, zoom, updateable)
+                    if event.key == pygame.K_LEFT:
+                        player.shoot(screen, pygame.Vector2(-1,0), enemies, zoom, updateable)
+                    if event.key == pygame.K_UP:
+                        player.shoot(screen, pygame.Vector2(0,-1), enemies, zoom, updateable)
+                    if event.key == pygame.K_DOWN:
+                        player.shoot(screen, pygame.Vector2(0,1), enemies, zoom, updateable)
             
             if event.type == pygame.KEYUP:
-                 if event.key == pygame.K_LSHIFT:
-                      player.move_speed = 1
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_a] and player.position.x > 0:
-                player.moving = True
-                player.move('left', colliders, dt)
-        elif keys[pygame.K_d] and player.position.x < world_size - 1:
-                player.moving = True
-                player.move('right', colliders, dt)
-        elif keys[pygame.K_w] and player.position.y > 0:
-                player.moving = True
-                player.move('up', colliders, dt)
-        elif keys[pygame.K_s] and player.position.y < world_size - 1:
-                player.moving = True
-                player.move('down', colliders, dt)
-        else:
-             player.moving = False
+                if event.key == pygame.K_LSHIFT:
+                    player.move_speed = 1
+            if paused:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        if menu_selection == menu0:
+                            menu_selection = menu1
+                        elif menu_selection == menu1:
+                            menu_selection = menu2
+                        elif menu_selection == menu2:
+                            menu_selection = menu0
+                        menu_cursor_rect.center = menu_selection
+                    if event.key == pygame.K_UP:
+                        if menu_selection == menu0:
+                            menu_selection = menu2
+                        elif menu_selection == menu1:
+                            menu_selection = menu0
+                        elif menu_selection == menu2:
+                            menu_selection = menu1
+                        menu_cursor_rect.center = menu_selection
+                    if event.key == pygame.K_RETURN:
+                        if menu_selection == menu0:
+                            paused = False
+                        if menu_selection == menu1:
+                            pass
+                        if menu_selection == menu2:
+                            running = False
+                        
+        if not paused:                  
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_a] and player.position.x > 0:
+                    player.moving = True
+                    player.move('left', colliders, dt)
+            elif keys[pygame.K_d] and player.position.x < world_size - 1:
+                    player.moving = True
+                    player.move('right', colliders, dt)
+            elif keys[pygame.K_w] and player.position.y > 0:
+                    player.moving = True
+                    player.move('up', colliders, dt)
+            elif keys[pygame.K_s] and player.position.y < world_size - 1:
+                    player.moving = True
+                    player.move('down', colliders, dt)
+            else:
+                player.moving = False
         #rendering and update code
         colliders = []
         screen.fill((44.7,45.9,10.6))
@@ -141,11 +180,11 @@ def main():
                     if tree_x == x and tree_y == y:
                         colliders.append(pygame.Rect(screen_x + 8 * zoom, screen_y, 16 * zoom, 32 * zoom))
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
-        player.update(colliders, dt)
-        healthbar = hearts[int(player.health/10)]
-        screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
-        for entity in updateable:
-                entity.update(player, tilemap, dt, zoom, tree_list)
+        if not paused:
+            player.update(colliders, dt)
+            screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
+            for entity in updateable:
+                    entity.update(player, tilemap, dt, zoom, tree_list)
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
@@ -153,11 +192,15 @@ def main():
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[29], (screen_x, screen_y))
+        healthbar = hearts[int(player.health/10)]
         screen.blit(light,(0,0))
         screen.blit(healthbar, (32,0))
         x = (screen.get_width() / 2) - (inventory_sprite.get_width() / 2)
         y = screen.get_height() - 64
         screen.blit(inventory_sprite, (x,y))
+        if paused:
+             screen.blit(menu, menu_rect)
+             screen.blit(menu_cursor, menu_cursor_rect)
         pygame.display.flip()
         dt = clock.tick(60) / 1000
     pygame.quit()

@@ -8,7 +8,7 @@ Scroll - Zoom
 
 ## Todo List
 
- * Add UI and menus
+ * Add options menu
  * Add passive mobs
  * Add inventory and drops
  * Add new weapons
