@@ -2,95 +2,16 @@ import pygame
 import multiprocessing
 from fractions import Fraction
 from random import randint
-from entity import Entity
+from mob import Mob
 from get_tileset import get_tileset
 from constants import *
 from pathfind import astar
+from coin import Coin
 
-class Chicken(Entity):
+class Chicken(Mob):
     def __init__(self, screen, position, zoom):
-        super().__init__(position, screen, None)
-        self.health = 100
+        super().__init__(screen, position, zoom, pygame.image.load(f"{PATH}/assets/chicken_sprite_sheet.png").convert_alpha())
         self.target = position
-        self.path = []
-        self.pathfind_delay = 0
-        self.new_x, self.new_y = 0,0
-        self.moving = False
-        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/slime_sprite_sheet.png").convert_alpha(), zoom)
-        self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
-                           (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
-                           (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
-                           (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
-        self.animation = self.animations[0]
-        self.sprite = self.animation[0]
-        self.anim_delay = 0
-        self.direction = 'down'
-        self.collider = pygame.Rect()
-        self.collider.size = (22 * zoom, 22 * zoom)
-        self.knockback_counter = 0
-        self.knockback_direction = 'down'
-    
-    def pathfind(self, tilemap, trees, pipe):
-        path = []
-        path = astar((int(self.position.x), int(self.position.y)), (self.target.x, self.target.y), tilemap, trees)
-        pipe.send(path)
-        pipe.close()
-
-    def change_direction(self, direction):
-        if direction == self.direction:
-            return
-        else:
-            self.direction = direction
-            if direction == 'down':
-                self.animation = self.animations[0]
-            elif direction == 'right':
-                self.animation = self.animations[1]
-            elif direction == 'up':
-                self.animation = self.animations[2]
-            elif direction == 'left':
-                self.animation = self.animations[3]
-            self.sprite = self.animation[0]
-
-    def move(self, dt):
-        if len(self.path) > 0:
-            if self.position.x == int(self.position.x) and self.position.y == int(self.position.y):      
-                if len(self.path) > 1:
-                    self.new_x, self.new_y = self.path.pop(1)
-            if self.position.x - self.new_x > 0:
-                self.change_direction('left')
-                self.position.x -= Fraction(1/32)
-            elif self.position.x - self.new_x < 0:
-                self.change_direction('right')
-                self.position.x += Fraction(1/32)
-            if self.position.y - self.new_y > 0:
-                self.change_direction('up')
-                self.position.y -= Fraction(1/32)
-            elif self.position.y - self.new_y < 0:
-                self.change_direction('down')
-                self.position.y += Fraction(1/32)
-            
-            if self.position.x == self.new_x and self.position.y == self.new_y:
-                self.moving = False
-                self.sprite = self.animation[0]
-            else:
-                self.moving = True
-            if self.moving:
-                self.anim_delay -= dt
-                if self.anim_delay <= 0:
-                    self.anim_delay = 0.15
-                    self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
-                if self.sprite == self.animation[4]:
-                    self.sprite = self.animation[0]
-    
-    def zoom(self, zoom):
-        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/chicken_sprite_sheet.png").convert_alpha(), zoom)
-        self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
-                           (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
-                           (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
-                           (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
-        self.animation = self.animations[0]
-        self.sprite = self.animation[0]
-        self.collider.size = (22 * zoom, 22 * zoom)
     
     def update(self, player, tilemap, dt, zoom, trees):
         if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
@@ -98,7 +19,7 @@ class Chicken(Entity):
             while tilemap[int(self.target.y)][int(self.target.x)] >= 32 or self.target in trees:
                 self.target = pygame.Vector2(randint(int(self.position.x - 3), int(self.position.x + 3)), randint(int(self.position.y - 3), int(self.position.y + 3)))
             parent_pipe, child_pipe = multiprocessing.Pipe()
-            pf_process = multiprocessing.Process(target = self.pathfind, args = ((tilemap, trees, child_pipe)))
+            pf_process = multiprocessing.Process(target = self.pathfind, args = ((self.target, tilemap, trees, child_pipe)))
             pf_process.start()
             new_path = parent_pipe.recv()
             if new_path != None:
@@ -114,6 +35,12 @@ class Chicken(Entity):
         if int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
             self.collider.center = (self.position.x * 32 * zoom - (player.position.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player.position.y * 32 * zoom - 510))
         self.draw(player.position, zoom)
+
+    def die(self, updateable, zoom):
+        for _ in range(randint(1,3)):
+            new_coin = Coin(self.screen, pygame.Vector2(self.position.x, self.position.y), zoom)
+            updateable.add(new_coin)
+        self.kill()
 
 def add_chicken(screen, updateable, enemies, world_size, tilemap, trees, zoom):
     position = pygame.Vector2(randint(0, world_size - 1), randint(0, world_size - 1))

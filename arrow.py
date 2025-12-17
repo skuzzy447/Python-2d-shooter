@@ -19,7 +19,7 @@ class Arrow(Entity):
     def move(self, dt):
         self.position += self.direction * 20 * dt
 
-    def check_collision(self, enemies, trees, player_pos, zoom):
+    def check_collision(self, enemies, trees, player_pos, zoom, updateable):
         for enemy in enemies:
             if enemy.collider.collidepoint((self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 512))):
                 self.hitfx.play()
@@ -27,7 +27,7 @@ class Arrow(Entity):
                 enemy.position += self.direction / 2
                 self.kill()
                 if enemy.health <= 0:
-                    enemy.kill()
+                    enemy.die(updateable, zoom)
                 break
         x = Decimal(self.position.x).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
@@ -42,11 +42,11 @@ class Arrow(Entity):
         self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
         self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
 
-    def update(self, player, dt, zoom, trees):
+    def update(self, player, dt, zoom, trees, updateable):
         if not self.stuck:
             self.move(dt)
             self.draw(player.position, zoom)
-            self.check_collision(self.enemies, trees, player.position, zoom)
+            self.check_collision(self.enemies, trees, player.position, zoom, updateable)
         else:
             self.draw(player.position, zoom)
             self.despawn_timer -= dt

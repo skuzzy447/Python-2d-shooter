@@ -7,11 +7,15 @@ from settings import *
 from player import Player, spawn_player
 from enemy import Enemy, add_enemy
 from chicken import Chicken, add_chicken
+from coin import Coin
+from arrow import Arrow
 
 def main(): 
     global zoom
     pygame.init()
     pygame.mixer.init()
+    pygame.font.init()
+    pygame.font.get_fonts()
     screen = pygame.display.set_mode((1024, 1024))
     clock = pygame.time.Clock()   
     dt = 0
@@ -25,9 +29,10 @@ def main():
 
     updateable = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
-    player = spawn_player(screen, world_size, tilemap, zoom)
+    player = spawn_player(screen, world_size, tilemap, tree_list, zoom)
     colliders = []
 
+    spawn_delay = 0
     music_delay = 10
 
     light = pygame.Surface((1024, 1024),pygame.SRCALPHA)
@@ -36,7 +41,10 @@ def main():
     next_color = next(COLORS)
     start_time = pygame.time.get_ticks()
 
-    hearts = get_tileset(pygame.image.load(f"{PATH}/assets/health_sprite_sheet.png").convert_alpha(), zoom, tile_width=160, tile_height=64)
+    hearts = get_tileset(pygame.image.load(f"{PATH}/assets/health_sprite_sheet.png").convert_alpha(), 2, tile_width=160, tile_height=64)
+    coin_icon = get_tileset(pygame.image.load(f"{PATH}/assets/coin_sprite_sheet.png").convert_alpha(), 4, tile_width=16, tile_height=16)
+    coin_icon = coin_icon[0]
+    coin_counter_font = pygame.font.SysFont('pixelon', 42)
     inventory_sprite = pygame.image.load(f"{PATH}/assets/inventory.png").convert_alpha()
     menu = pygame.image.load(f"{PATH}/assets/menu.png").convert_alpha()
     menu_rect = menu.get_rect()
@@ -76,13 +84,16 @@ def main():
 
         light_color = inter_color(current_color, next_color, factor)
         light.fill(light_color)
-
-        while len(enemies) < max_enemies and current_color == NIGHT_COLOR:
-            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
-            new_enemy.zoom(zoom)
-        while len(enemies) < max_enemies and current_color != NIGHT_COLOR:
-            new_chicken = add_chicken(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
-            new_chicken.zoom(zoom)
+        if spawn_delay > 0:
+            spawn_delay -= dt
+        if spawn_delay <= 0:
+            spawn_delay = 2
+            if len(enemies) < max_enemies and current_color == NIGHT_COLOR:
+                new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
+                new_enemy.zoom(zoom)
+            if len(enemies) < max_enemies and current_color != NIGHT_COLOR:
+                new_chicken = add_chicken(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
+                new_chicken.zoom(zoom)
         if current_color == SUNSET_COLOR:
              for enemy in enemies:
                   enemy.kill()
@@ -197,8 +208,10 @@ def main():
             for entity in updateable:
                     if isinstance(entity, Enemy) or isinstance(entity, Chicken):
                         entity.update(player, tilemap, dt, zoom, tree_list)
+                    elif isinstance(entity, Coin):
+                        entity.update(player, dt, zoom)
                     else:
-                        entity.update(player, dt, zoom, tree_list)
+                        entity.update(player, dt, zoom, tree_list, updateable)
                     
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
@@ -208,15 +221,19 @@ def main():
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[29], (screen_x, screen_y))
         if show_colliders:
-            for enemy in enemies:
-                if int(enemy.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(enemy.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
-                    pygame.draw.rect(screen, (255,0,0), enemy.collider, 1)
+            for e in updateable:
+                if not isinstance(e, Arrow):
+                    if int(e.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(e.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
+                        pygame.draw.rect(screen, (255,0,0), e.collider, 1)
             for collider in colliders:
                     pygame.draw.rect(screen, (0,255,0), collider, 1)
             pygame.draw.rect(screen, (0,0,255), player.collider, 1)
         healthbar = hearts[int(player.health/10)]
         screen.blit(light,(0,0))
         screen.blit(healthbar, (32,0))
+        screen.blit(coin_icon, (32, 96))
+        coin_counter = coin_counter_font.render(str(player.coins), False, (255, 255, 255))
+        screen.blit(coin_counter, (96, 111))
         x = (screen.get_width() / 2) - (inventory_sprite.get_width() / 2)
         y = screen.get_height() - 64
         screen.blit(inventory_sprite, (x,y))

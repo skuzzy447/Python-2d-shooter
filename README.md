@@ -4,6 +4,8 @@ WASD = Walk
 Shift = Sprint  
 Arrow Keys = Fire Arrow  
 Scroll or -/+ = Zoom
+F1 = Screenshot
+F2 = Show Colliders
 
 
 ## Todo List

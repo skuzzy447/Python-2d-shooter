@@ -17,6 +17,7 @@ class Player(Entity):
         self.screen = screen
         self.health = health
         self.position = position
+        self.coins = 0
         self.moving = False
         self.direction = 'down'
         self.frame_delay = 0.2
@@ -143,9 +144,9 @@ class Player(Entity):
         if self.shoot_delay > 0:
             self.shoot_delay -= dt
 
-def spawn_player(screen, world_size, tilemap, zoom):
+def spawn_player(screen, world_size, tilemap, trees, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)
-    if tilemap[int(position.y)][int(position.x)] >= 32:
-        while tilemap[int(position.y)][int(position.x)] >= 32:
+    if tilemap[int(position.y)][int(position.x)] >= 32 and (position.x, position.y) in trees:
+        while tilemap[int(position.y)][int(position.x)] >= 32 and (position.x, position.y) in trees:
             position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
     return Player(screen, position, zoom)
