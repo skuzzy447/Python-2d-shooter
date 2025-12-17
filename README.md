@@ -1,15 +1,14 @@
 # Simple Top-Down Shooter
 
-WASD - Walk  
-Shift - Sprint  
-Arrow Keys - Fire Arrow  
-Scroll - Zoom
+WASD = Walk  
+Shift = Sprint  
+Arrow Keys = Fire Arrow  
+Scroll or -/+ = Zoom
 
 
 ## Todo List
 
  * Add options menu
- * Add passive mobs
  * Add inventory and drops
  * Add new weapons
  * Fix enemy pathfinding

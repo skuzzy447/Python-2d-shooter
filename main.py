@@ -1,10 +1,12 @@
 import pygame
 import random
+from datetime import datetime
 from generate_world import generate
 from constants import *
 from settings import *
 from player import Player, spawn_player
 from enemy import Enemy, add_enemy
+from chicken import Chicken, add_chicken
 
 def main(): 
     global zoom
@@ -15,6 +17,7 @@ def main():
     dt = 0
     running = True
     paused = False
+    show_colliders = False
     ground_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/ground_tileset.png").convert_alpha(), zoom)
     tilemap, tree_list = generate(world_size)
     pygame.event.set_grab(True)
@@ -75,8 +78,11 @@ def main():
         light.fill(light_color)
 
         while len(enemies) < max_enemies and current_color == NIGHT_COLOR:
-            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, zoom)
+            new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
             new_enemy.zoom(zoom)
+        while len(enemies) < max_enemies and current_color != NIGHT_COLOR:
+            new_chicken = add_chicken(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
+            new_chicken.zoom(zoom)
         if current_color == SUNSET_COLOR:
              for enemy in enemies:
                   enemy.kill()
@@ -104,6 +110,11 @@ def main():
                 if event.key == pygame.K_ESCAPE:
                     paused = not paused
                 if not paused:
+                    if event.key == pygame.K_F1:
+                        date = datetime.now().strftime("%Y-%m-%d_%H%M%S")
+                        pygame.image.save(screen, f"{PATH}/screenshot_{date}.png")
+                    if event.key == pygame.K_F2:
+                        show_colliders = not show_colliders
                     if event.key == pygame.K_EQUALS:
                         if zoom < 2.5:
                             zoom_entities(0.5)
@@ -184,7 +195,11 @@ def main():
             player.update(colliders, dt)
             screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
             for entity in updateable:
-                    entity.update(player, tilemap, dt, zoom, tree_list)
+                    if isinstance(entity, Enemy) or isinstance(entity, Chicken):
+                        entity.update(player, tilemap, dt, zoom, tree_list)
+                    else:
+                        entity.update(player, dt, zoom, tree_list)
+                    
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
@@ -192,6 +207,13 @@ def main():
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[29], (screen_x, screen_y))
+        if show_colliders:
+            for enemy in enemies:
+                if int(enemy.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(enemy.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
+                    pygame.draw.rect(screen, (255,0,0), enemy.collider, 1)
+            for collider in colliders:
+                    pygame.draw.rect(screen, (0,255,0), collider, 1)
+            pygame.draw.rect(screen, (0,0,255), player.collider, 1)
         healthbar = hearts[int(player.health/10)]
         screen.blit(light,(0,0))
         screen.blit(healthbar, (32,0))

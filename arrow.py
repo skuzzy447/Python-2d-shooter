@@ -42,7 +42,7 @@ class Arrow(Entity):
         self.sprite = pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom)))
         self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
 
-    def update(self, player, tilemap, dt, zoom, trees):
+    def update(self, player, dt, zoom, trees):
         if not self.stuck:
             self.move(dt)
             self.draw(player.position, zoom)

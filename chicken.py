@@ -1,16 +1,17 @@
 import pygame
-import random
 import multiprocessing
-from constants import PATH
-from pathfind import astar
-from entity import Entity
 from fractions import Fraction
+from random import randint
+from entity import Entity
 from get_tileset import get_tileset
+from constants import *
+from pathfind import astar
 
-class Enemy(Entity):
+class Chicken(Entity):
     def __init__(self, screen, position, zoom):
         super().__init__(position, screen, None)
         self.health = 100
+        self.target = position
         self.path = []
         self.pathfind_delay = 0
         self.new_x, self.new_y = 0,0
@@ -28,10 +29,10 @@ class Enemy(Entity):
         self.collider.size = (22 * zoom, 22 * zoom)
         self.knockback_counter = 0
         self.knockback_direction = 'down'
-
-    def pathfind(self, player_pos, tilemap, trees, pipe):
+    
+    def pathfind(self, tilemap, trees, pipe):
         path = []
-        path = astar((int(self.position.x), int(self.position.y)), (player_pos.x, player_pos.y), tilemap, trees)
+        path = astar((int(self.position.x), int(self.position.y)), (self.target.x, self.target.y), tilemap, trees)
         pipe.send(path)
         pipe.close()
 
@@ -80,41 +81,29 @@ class Enemy(Entity):
                     self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]
-
-    def check_collision(self, player):
-        if self.collider.colliderect(player.collider):
-            self.move_delay = 0.3
-            self.knockback_counter = 4
-            player.hit(10, self.direction)
-            if self.direction == "up":
-                self.knockback_direction = 'down'
-            if self.direction == "down":
-                self.knockback_direction = 'up'
-            if self.direction == "left":
-                self.knockback_direction = 'right'
-            if self.direction == "right":
-                self.knockback_direction = 'left'
-
-    def knockback(self, dt):
-        if self.knockback_direction == 'up':
-            self.position.y -= Fraction(1/8)
-        elif self.knockback_direction == 'down':
-            self.position.y += Fraction(1/8)
-        elif self.knockback_direction == 'left':
-            self.position.x -= Fraction(1/8)
-        elif self.knockback_direction == 'right':
-            self.position.x += Fraction(1/8)
-
+    
+    def zoom(self, zoom):
+        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/chicken_sprite_sheet.png").convert_alpha(), zoom)
+        self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
+                           (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
+                           (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
+                           (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
+        self.animation = self.animations[0]
+        self.sprite = self.animation[0]
+        self.collider.size = (22 * zoom, 22 * zoom)
+    
     def update(self, player, tilemap, dt, zoom, trees):
         if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
-            if self.position != player.position:
-                parent_pipe, child_pipe = multiprocessing.Pipe()
-                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, child_pipe)))
-                pf_process.start()
-                new_path = parent_pipe.recv()
-                if new_path != None:
-                    self.path = new_path
-            self.pathfind_delay = 0.5
+            self.target = pygame.Vector2(randint(int(self.position.x - 3), int(self.position.x + 3)), randint(int(self.position.y - 3), int(self.position.y + 3)))
+            while tilemap[int(self.target.y)][int(self.target.x)] >= 32 or self.target in trees:
+                self.target = pygame.Vector2(randint(int(self.position.x - 3), int(self.position.x + 3)), randint(int(self.position.y - 3), int(self.position.y + 3)))
+            parent_pipe, child_pipe = multiprocessing.Pipe()
+            pf_process = multiprocessing.Process(target = self.pathfind, args = ((tilemap, trees, child_pipe)))
+            pf_process.start()
+            new_path = parent_pipe.recv()
+            if new_path != None:
+                self.path = new_path
+            self.pathfind_delay = randint(4,8)
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
         if self.move_delay <= 0:
@@ -124,28 +113,14 @@ class Enemy(Entity):
             self.move_delay -= dt
         if int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
             self.collider.center = (self.position.x * 32 * zoom - (player.position.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player.position.y * 32 * zoom - 510))
-        if self.knockback_counter > 0:
-            self.knockback_counter -= 1
-            self.knockback(dt)
-        self.check_collision(player)
         self.draw(player.position, zoom)
 
-    def zoom(self, zoom):
-        self.sprite_sheet = get_tileset(pygame.image.load(f"{PATH}/assets/slime_sprite_sheet.png").convert_alpha(), zoom)
-        self.animations = ((self.sprite_sheet[0], self.sprite_sheet[1], self.sprite_sheet[2], self.sprite_sheet[3], self.sprite_sheet[4]), 
-                           (self.sprite_sheet[5], self.sprite_sheet[6], self.sprite_sheet[7], self.sprite_sheet[8], self.sprite_sheet[9]), 
-                           (self.sprite_sheet[10], self.sprite_sheet[11], self.sprite_sheet[12], self.sprite_sheet[13], self.sprite_sheet[14]), 
-                           (self.sprite_sheet[15], self.sprite_sheet[16], self.sprite_sheet[17], self.sprite_sheet[18], self.sprite_sheet[19]))
-        self.animation = self.animations[0]
-        self.sprite = self.animation[0]
-        self.collider.size = (22 * zoom, 22 * zoom)
-
-def add_enemy(screen, updateable, enemies, world_size, tilemap, trees, zoom):
-    position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
+def add_chicken(screen, updateable, enemies, world_size, tilemap, trees, zoom):
+    position = pygame.Vector2(randint(0, world_size - 1), randint(0, world_size - 1))
     if tilemap[int(position.y)][int(position.x)] >= 32 or (position.x, position.y) in trees:
         while tilemap[int(position.y)][int(position.x)] >= 32 or (position.x, position.y) in trees:
-            position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
-    new_enemy = Enemy(screen, position, zoom)
-    updateable.add(new_enemy)
-    enemies.add(new_enemy)
-    return new_enemy
+            position = pygame.Vector2(randint(0, world_size - 1), randint(0, world_size - 1))
+    new_chicken = Chicken(screen, position, zoom)
+    updateable.add(new_chicken)
+    enemies.add(new_chicken)
+    return new_chicken
