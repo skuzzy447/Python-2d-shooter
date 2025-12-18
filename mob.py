@@ -93,8 +93,8 @@ class Mob(Entity):
         self.sprite = self.animation[0]
         self.collider.size = (22 * zoom, 22 * zoom)
 
-    def pathfind(self, target, tilemap, trees, pipe):
+    def pathfind(self, target, tilemap, trees, shop, pipe):
         path = []
-        path = astar((int(self.position.x), int(self.position.y)), (target.x, target.y), tilemap, trees)
+        path = astar((int(self.position.x), int(self.position.y)), (target.x, target.y), tilemap, trees, shop)
         pipe.send(path)
         pipe.close()

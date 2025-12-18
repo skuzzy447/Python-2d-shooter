@@ -5,12 +5,12 @@ from constants import PATH
 from decimal import Decimal, ROUND_HALF_UP
 
 class Arrow(Entity):
-    def __init__(self, screen, position, enemies, zoom, rotation=0 , direction=pygame.Vector2(1,0)):
+    def __init__(self, screen, position, mobs, zoom, rotation=0 , direction=pygame.Vector2(1,0)):
         super().__init__(position, screen, pygame.transform.scale(pygame.image.load(f"{PATH}/assets/arrow.png").convert_alpha(), (int(32 * zoom), int(32 * zoom))))
         self.rotation = rotation
         self.sprite = pygame.transform.rotate(self.sprite, self.rotation)
         self.direction = direction
-        self.enemies = enemies
+        self.mobs = mobs
         self.stuck = False
         self.despawn_timer = 5
         self.hitfx = pygame.mixer.Sound(f"{PATH}/assets/fx/arrow_hit.wav")
@@ -19,15 +19,15 @@ class Arrow(Entity):
     def move(self, dt):
         self.position += self.direction * 20 * dt
 
-    def check_collision(self, enemies, trees, player_pos, zoom, updateable):
-        for enemy in enemies:
-            if enemy.collider.collidepoint((self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 512))):
+    def check_collision(self, mobs, trees, player_pos, zoom, updateable):
+        for mob in mobs:
+            if mob.collider.collidepoint((self.position.x * 32 * zoom - (player_pos.x * 32 * zoom - 512), self.position.y * 32 * zoom - (player_pos.y * 32 * zoom - 512))):
                 self.hitfx.play()
-                enemy.health -= 25
-                enemy.position += self.direction / 2
+                mob.health -= 25
+                mob.position += self.direction / 2
                 self.kill()
-                if enemy.health <= 0:
-                    enemy.die(updateable, zoom)
+                if mob.health <= 0:
+                    mob.die(updateable, zoom)
                 break
         x = Decimal(self.position.x).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
         y = Decimal(self.position.y).quantize(Decimal('1'),rounding = ROUND_HALF_UP)
@@ -46,7 +46,7 @@ class Arrow(Entity):
         if not self.stuck:
             self.move(dt)
             self.draw(player.position, zoom)
-            self.check_collision(self.enemies, trees, player.position, zoom, updateable)
+            self.check_collision(self.mobs, trees, player.position, zoom, updateable)
         else:
             self.draw(player.position, zoom)
             self.despawn_timer -= dt

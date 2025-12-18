@@ -46,10 +46,10 @@ class Player(Entity):
             pygame.quit()
             sys.exit()
 
-    def shoot(self, screen, direction, enemies, zoom, updateable):
+    def shoot(self, screen, direction, mobs, zoom, updateable):
         if self.shoot_delay <= 0:
             rotation = math.degrees(math.atan2(-direction.y, direction.x))
-            new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), enemies, zoom, rotation, direction)
+            new_arrow = Arrow(screen, pygame.Vector2(self.position.x, self.position.y), mobs, zoom, rotation, direction)
             self.shootfx.play()
             self.shoot_delay = 0.25
             updateable.add(new_arrow)
@@ -146,7 +146,7 @@ class Player(Entity):
 
 def spawn_player(screen, world_size, tilemap, trees, zoom):
     position = pygame.Vector2(world_size / 2, world_size / 2)
-    if tilemap[int(position.y)][int(position.x)] >= 32 and (position.x, position.y) in trees:
-        while tilemap[int(position.y)][int(position.x)] >= 32 and (position.x, position.y) in trees:
+    if tilemap[int(position.y)][int(position.x)] >= 32 or (position.x, position.y) in trees:
+        while tilemap[int(position.y)][int(position.x)] >= 32 or (position.x, position.y) in trees:
             position = pygame.Vector2(random.randint(0, world_size - 1), random.randint(0, world_size - 1))
     return Player(screen, position, zoom)

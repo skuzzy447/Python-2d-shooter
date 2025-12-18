@@ -1,6 +1,8 @@
 import random
 import json
 import os
+from pygame import Vector2
+from house import House
 
 def remove_small_lakes(tilemap):
     height = len(tilemap)
@@ -143,7 +145,33 @@ def place_trees(tilemap, tree_density):
                     #tilemap[y-1][x] = 29
     return tilemap, tree_list
 
-def generate(size):
+def place_house(tilemap, trees, size, screen, zoom):
+    shops = []
+    for _ in range(size//32):
+        coords = Vector2((random.randint(8,(size-8))), (random.randint(8,(size-8))))
+        test_coords = Vector2()
+        def can_build(coords, tilemap, trees):
+            test_coords.x = coords.x
+            test_coords.y = coords.y
+            print("testing")
+            for y in range(0,2):
+                test_coords.y = coords.y + 3 + y
+                for x in range(1,4):
+                    test_coords.x = coords.x + x
+                    print(test_coords)
+                    if tilemap[int(test_coords.y)][int(test_coords.x)] >= 31 or (int(test_coords.x), int(test_coords.y)) in trees:
+                        print("can't build")
+                        return False
+            print("can build")
+            return True
+        while not can_build(coords, tilemap, trees):
+            coords.x += random.randint(-1,1)
+            coords.y += random.randint(-1,1)
+        shop = House(coords, screen, zoom)
+        shops.append(shop)
+    return shops
+
+def generate(size, screen, zoom):
     tilemap = []
     for y in range(0,size):
         tilemap.append([])
@@ -177,9 +205,10 @@ def generate(size):
     tilemap = remove_small_lakes(tilemap)
     tilemap = build_boulders(tilemap)
     tilemap, tree_list = place_trees(tilemap, 2)
+    shop = place_house(tilemap, tree_list, size, screen, zoom)
     with open(f"{path}/tilemap.json", "w") as f:
         json.dump(tilemap, f)
-    return tilemap, tree_list
+    return tilemap, tree_list, shop
 
 def random_tile():
     tile = random.randint(0,100)

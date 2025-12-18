@@ -36,11 +36,11 @@ class Enemy(Mob):
         elif self.knockback_direction == 'right':
             self.position.x += Fraction(1/8)
 
-    def update(self, player, tilemap, dt, zoom, trees):
+    def update(self, player, tilemap, dt, zoom, trees, shop):
         if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
             if self.position != player.position:
                 parent_pipe, child_pipe = multiprocessing.Pipe()
-                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, child_pipe)))
+                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, shop, child_pipe)))
                 pf_process.start()
                 new_path = parent_pipe.recv()
                 if new_path != None:
@@ -67,11 +67,12 @@ class Enemy(Mob):
             updateable.add(new_coin)  
         self.kill()
 
-def add_enemy(screen, updateable, enemies, world_size, tilemap, trees, zoom):
+def add_enemy(screen, updateable, enemies, mobs, world_size, tilemap, trees, zoom):
     position = pygame.Vector2(randint(0, world_size - 1), randint(0, world_size - 1))
     if not tilemap[int(position.y)][int(position.x)] >= 32 or not (position.x, position.y) in trees:
         position = pygame.Vector2(randint(0, world_size - 1), randint(0, world_size - 1))
         new_enemy = Enemy(screen, position, zoom)
         updateable.add(new_enemy)
+        mobs.add(new_enemy)
         enemies.add(new_enemy)
         return new_enemy

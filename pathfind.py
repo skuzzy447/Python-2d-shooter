@@ -26,7 +26,7 @@ class Node:
         self.h = math.sqrt((self.position[0] - goal.position[0]) ** 2 + (self.position[1] - goal.position[1]) ** 2)
         self.f = self.g + self.h
     
-def astar(start_pos, player_pos, tilemap, trees):
+def astar(start_pos, player_pos, tilemap, trees, shops):
     x, y = 0, 0
     if player_pos[0] % 1 >= 0.5:
         x = int(player_pos[0]) + 1
@@ -83,6 +83,17 @@ def astar(start_pos, player_pos, tilemap, trees):
             if tile >= 32:
                 continue
             if (node_position[0], node_position[1]) in trees:
+                continue
+            
+            def check(shops):
+                for shop in shops:
+                    shop_x = range(int(shop.position.x+1), int(shop.position.x+4))
+                    shop_y = shop.position.y+3
+                    if node_position[1] == shop_y:
+                        if node_position[0] in shop_x:
+                            return False
+                return True
+            if not check(shops):
                 continue
 
             neighbor_node = Node(node_position, tile, current_node)

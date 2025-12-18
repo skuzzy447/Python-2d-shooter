@@ -9,13 +9,14 @@ from enemy import Enemy, add_enemy
 from chicken import Chicken, add_chicken
 from coin import Coin
 from arrow import Arrow
+from house import House
 
 def main(): 
     global zoom
     pygame.init()
     pygame.mixer.init()
     pygame.font.init()
-    pygame.font.get_fonts()
+    game_font = pygame.font.Font(f"{PATH}/assets/pixelon.regular.ttf", 42)
     screen = pygame.display.set_mode((1024, 1024))
     clock = pygame.time.Clock()   
     dt = 0
@@ -23,13 +24,15 @@ def main():
     paused = False
     show_colliders = False
     ground_tiles = get_tileset(pygame.image.load(f"{PATH}/assets/ground_tileset.png").convert_alpha(), zoom)
-    tilemap, tree_list = generate(world_size)
-    pygame.event.set_grab(True)
+    tilemap, tree_list, shops = generate(world_size, screen, zoom)
     pygame.mouse.set_visible(False)
 
     updateable = pygame.sprite.Group()
+    mobs = pygame.sprite.Group()
+    passives = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
     player = spawn_player(screen, world_size, tilemap, tree_list, zoom)
+
     colliders = []
 
     spawn_delay = 0
@@ -40,11 +43,11 @@ def main():
     current_color = next(COLORS)
     next_color = next(COLORS)
     start_time = pygame.time.get_ticks()
+    elapsed_time = 0
 
     hearts = get_tileset(pygame.image.load(f"{PATH}/assets/health_sprite_sheet.png").convert_alpha(), 2, tile_width=160, tile_height=64)
     coin_icon = get_tileset(pygame.image.load(f"{PATH}/assets/coin_sprite_sheet.png").convert_alpha(), 4, tile_width=16, tile_height=16)
     coin_icon = coin_icon[0]
-    coin_counter_font = pygame.font.SysFont('pixelon', 42)
     inventory_sprite = pygame.image.load(f"{PATH}/assets/inventory.png").convert_alpha()
     menu = pygame.image.load(f"{PATH}/assets/menu.png").convert_alpha()
     menu_rect = menu.get_rect()
@@ -74,25 +77,29 @@ def main():
         player.zoom(zoom)
 
     while running:
-        elapsed_time = pygame.time.get_ticks() - start_time
-        factor = min(elapsed_time / CYCLE_DURATION, 1.0)
-        if factor >= 1.0:
-             current_color = next_color
-             next_color = next(COLORS)
-             start_time = pygame.time.get_ticks()
-             factor = 0.0
-
-        light_color = inter_color(current_color, next_color, factor)
-        light.fill(light_color)
+        if not paused:
+            elapsed_time = pygame.time.get_ticks() - start_time
+            factor = min(elapsed_time / CYCLE_DURATION, 1.0)
+            if factor >= 1.0:
+                current_color = next_color
+                next_color = next(COLORS)
+                start_time = pygame.time.get_ticks()
+                factor = 0.0
+            light_color = inter_color(current_color, next_color, factor)
+            light.fill(light_color)
+        else:
+            start_time += pygame.time.get_ticks() - start_time - elapsed_time
         if spawn_delay > 0:
             spawn_delay -= dt
         if spawn_delay <= 0:
             spawn_delay = 2
             if len(enemies) < max_enemies and current_color == NIGHT_COLOR:
-                new_enemy = add_enemy(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
+                for passive in passives:
+                    passive.kill()
+                new_enemy = add_enemy(screen, updateable, enemies, mobs, world_size, tilemap, tree_list, zoom)
                 new_enemy.zoom(zoom)
             if len(enemies) < max_enemies and current_color != NIGHT_COLOR:
-                new_chicken = add_chicken(screen, updateable, enemies, world_size, tilemap, tree_list, zoom)
+                new_chicken = add_chicken(screen, updateable, passives, mobs, world_size, tilemap, tree_list, zoom)
                 new_chicken.zoom(zoom)
         if current_color == SUNSET_COLOR:
              for enemy in enemies:
@@ -126,6 +133,8 @@ def main():
                         pygame.image.save(screen, f"{PATH}/screenshot_{date}.png")
                     if event.key == pygame.K_F2:
                         show_colliders = not show_colliders
+                    if event.key == pygame.K_F3:
+                        print(player.position)
                     if event.key == pygame.K_EQUALS:
                         if zoom < 2.5:
                             zoom_entities(0.5)
@@ -135,13 +144,13 @@ def main():
                     if event.key == pygame.K_LSHIFT:
                         player.sprint()
                     if event.key == pygame.K_RIGHT:
-                        player.shoot(screen, pygame.Vector2(1,0), enemies, zoom, updateable)
+                        player.shoot(screen, pygame.Vector2(1,0), mobs, zoom, updateable)
                     if event.key == pygame.K_LEFT:
-                        player.shoot(screen, pygame.Vector2(-1,0), enemies, zoom, updateable)
+                        player.shoot(screen, pygame.Vector2(-1,0), mobs, zoom, updateable)
                     if event.key == pygame.K_UP:
-                        player.shoot(screen, pygame.Vector2(0,-1), enemies, zoom, updateable)
+                        player.shoot(screen, pygame.Vector2(0,-1), mobs, zoom, updateable)
                     if event.key == pygame.K_DOWN:
-                        player.shoot(screen, pygame.Vector2(0,1), enemies, zoom, updateable)
+                        player.shoot(screen, pygame.Vector2(0,1), mobs, zoom, updateable)
             
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LSHIFT:
@@ -191,11 +200,13 @@ def main():
         #rendering and update code
         colliders = []
         screen.fill((44.7,45.9,10.6))
-        for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
-            for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
+        for y in range(max(0, int(player.position.y - 19 // zoom)), min(world_size, int(player.position.y + 20 // zoom))):
+            for x in range(max(0, int(player.position.x - 19 // zoom)), min(world_size, int(player.position.x + 20 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
                 screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512) - 16 * zoom
                 screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
+                for shop in shops:
+                    colliders.append(shop.collider)
                 if tilemap[y][x] >= 32:
                      colliders.append(pygame.Rect(screen_x, screen_y, 32 * zoom, 32 * zoom))
                 for (tree_x, tree_y) in tree_list:
@@ -207,7 +218,7 @@ def main():
             screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
             for entity in updateable:
                     if isinstance(entity, Enemy) or isinstance(entity, Chicken):
-                        entity.update(player, tilemap, dt, zoom, tree_list)
+                        entity.update(player, tilemap, dt, zoom, tree_list, shops)
                     elif isinstance(entity, Coin):
                         entity.update(player, dt, zoom)
                     else:
@@ -220,6 +231,8 @@ def main():
                 for (tree_x, tree_y) in tree_list:
                     if tree_x == x and tree_y == y:
                         screen.blit(ground_tiles[29], (screen_x, screen_y))
+        for shop in shops:
+            shop.update(player, zoom)
         if show_colliders:
             for e in updateable:
                 if not isinstance(e, Arrow):
@@ -232,7 +245,7 @@ def main():
         screen.blit(light,(0,0))
         screen.blit(healthbar, (32,0))
         screen.blit(coin_icon, (32, 96))
-        coin_counter = coin_counter_font.render(str(player.coins), False, (255, 255, 255))
+        coin_counter = game_font.render(str(player.coins), False, (255, 255, 255))
         screen.blit(coin_counter, (96, 111))
         x = (screen.get_width() / 2) - (inventory_sprite.get_width() / 2)
         y = screen.get_height() - 64
