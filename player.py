@@ -30,7 +30,7 @@ class Player(Entity):
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
         self.collider = pygame.Rect()
-        self.collider.size = (14 * zoom, 24 * zoom)
+        self.collider.size = (14 * zoom, 20 * zoom)
         self.collider.center = (511, 510)
         self.knockback_counter = 0
         self.knockback_direction = 'down'
@@ -70,26 +70,26 @@ class Player(Entity):
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
 
-        self.collider.size = (16 * zoom, 28 * zoom)
+        self.collider.size = (16 * zoom, 20 * zoom)
         self.collider.center = (511, 510)
         
     def move(self, direction, colliders, dt):
         if self.direction != direction:
             self.direction = direction
             if direction == 'up':
-                self.collider.center = (511, 508)
+                self.collider.center = (511, 506)
                 self.animation = self.animations[2]
                 self.sprite = self.animation[0]
             elif direction == 'down':
-                self.collider.center = (511, 512)
+                self.collider.center = (511, 514)
                 self.animation = self.animations[0]
                 self.sprite = self.animation[0]
             elif direction == 'left':
-                self.collider.center = (508, 510)
+                self.collider.center = (506, 510)
                 self.animation = self.animations[3]
                 self.sprite = self.animation[0]
             elif direction == 'right':
-                self.collider.center = (514, 510)
+                self.collider.center = (516, 510)
                 self.animation = self.animations[1]
                 self.sprite = self.animation[0]
         if self.collider.collidelist(colliders) == -1:

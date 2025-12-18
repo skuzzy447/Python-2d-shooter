@@ -158,11 +158,10 @@ def place_house(tilemap, trees, size, screen, zoom):
                 test_coords.y = coords.y + 3 + y
                 for x in range(1,4):
                     test_coords.x = coords.x + x
-                    print(test_coords)
                     if tilemap[int(test_coords.y)][int(test_coords.x)] >= 31 or (int(test_coords.x), int(test_coords.y)) in trees:
-                        print("can't build")
+                        print("can't build house")
                         return False
-            print("can build")
+            print("can build house")
             return True
         while not can_build(coords, tilemap, trees):
             coords.x += random.randint(-1,1)
@@ -173,6 +172,7 @@ def place_house(tilemap, trees, size, screen, zoom):
     return shops
 
 def generate(size, screen, zoom):
+    print("generating world")
     tilemap = []
     for y in range(0,size):
         tilemap.append([])
@@ -203,9 +203,13 @@ def generate(size, screen, zoom):
                     else:
                         tilemap[y].append(random_tile())
     path = os.path.dirname(os.path.abspath(__file__))
+    print("removing small bodies of water")
     tilemap = remove_small_lakes(tilemap)
+    print("building boulders")
     tilemap = build_boulders(tilemap)
+    print("placing trees")
     tilemap, tree_list = place_trees(tilemap, 2)
+    print("placing shops")
     shop = place_house(tilemap, tree_list, size, screen, zoom)
     with open(f"{path}/tilemap.json", "w") as f:
         json.dump(tilemap, f)

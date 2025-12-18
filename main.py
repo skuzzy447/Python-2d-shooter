@@ -13,6 +13,7 @@ from house import House
 
 def main(): 
     global zoom
+    print("initializing")
     pygame.init()
     pygame.mixer.init()
     pygame.font.init()
@@ -33,6 +34,7 @@ def main():
     mobs = pygame.sprite.Group()
     passives = pygame.sprite.Group()
     enemies = pygame.sprite.Group()
+    print("spawning player")
     player = spawn_player(screen, world_size, tilemap, tree_list, zoom)
 
     colliders = []
@@ -90,14 +92,13 @@ def main():
                 factor = 0.0
             light_color = inter_color(current_color, next_color, factor)
             light.fill(light_color)
-            print(factor)
         if spawn_delay > 0:
             spawn_delay -= dt
         if spawn_delay <= 0:
             spawn_delay = 2
             if len(mobs) < max_mobs and current_color == NIGHT_COLOR:
                 if len(passives) > 0:
-                    passives[0].kill()
+                    passives.sprites()[0].kill()
                 new_enemy = add_enemy(screen, updateable, enemies, mobs, world_size, tilemap, tree_list, zoom)
                 new_enemy.zoom(zoom)
             if len(mobs) < max_mobs and current_color != NIGHT_COLOR:
