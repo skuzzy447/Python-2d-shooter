@@ -168,6 +168,7 @@ def place_house(tilemap, trees, size, screen, zoom):
             coords.x += random.randint(-1,1)
             coords.y += random.randint(-1,1)
         shop = House(coords, screen, zoom)
+        tilemap[int(coords.y + 3)][int(coords.x + 3)] = 29
         shops.append(shop)
     return shops
 
