@@ -30,10 +30,12 @@ class Player(Entity):
         self.animation = self.animations[0]
         self.sprite = self.animation[0]
         self.collider = pygame.Rect()
-        self.collider.size = (14 * zoom, 20 * zoom)
-        self.collider.center = (511, 510)
+        self.collider.size = (14 * zoom, 8 * zoom)
         self.knockback_counter = 0
         self.knockback_direction = 'down'
+        self.center = pygame.Vector2(self.position.x * 32 * zoom - (self.position.x * 32 * zoom - 512), self.position.y * 32 * zoom - (self.position.y * 32 * zoom - 512))
+        self.center.y += 2.5*zoom
+        self.collider.center = self.center
 
     def sprint(self):
         self.move_speed = 2
@@ -69,27 +71,32 @@ class Player(Entity):
         elif self.direction == 'right':
             self.animation = self.animations[1]
         self.sprite = self.animation[0]
-
-        self.collider.size = (16 * zoom, 20 * zoom)
-        self.collider.center = (511, 510)
+        self.center = pygame.Vector2(self.position.x * 32 * zoom - (self.position.x * 32 * zoom - 512), self.position.y * 32 * zoom - (self.position.y * 32 * zoom - 512))
+        self.center.y += 2.5*zoom
+        self.collider.size = (14 * zoom, 8 * zoom)
+        self.collider.center = self.center
         
-    def move(self, direction, colliders, dt):
+    def move(self, direction, colliders, dt, zoom):
+        if direction == 'up':
+            self.collider.center = (self.center.x, self.center.y-2*zoom)
+        elif direction == 'down':
+            self.collider.center = (self.center.x, self.center.y+2*zoom)
+        elif direction == 'left':
+            self.collider.center = (self.center.x-2*zoom, self.center.y)
+        elif direction == 'right':
+                self.collider.center = (self.center.x+2*zoom, self.center.y)
         if self.direction != direction:
             self.direction = direction
             if direction == 'up':
-                self.collider.center = (511, 506)
                 self.animation = self.animations[2]
                 self.sprite = self.animation[0]
             elif direction == 'down':
-                self.collider.center = (511, 514)
                 self.animation = self.animations[0]
                 self.sprite = self.animation[0]
             elif direction == 'left':
-                self.collider.center = (506, 510)
                 self.animation = self.animations[3]
                 self.sprite = self.animation[0]
             elif direction == 'right':
-                self.collider.center = (516, 510)
                 self.animation = self.animations[1]
                 self.sprite = self.animation[0]
         if self.collider.collidelist(colliders) == -1:

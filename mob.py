@@ -8,12 +8,12 @@ from constants import *
 from pathfind import astar
 
 class Mob(Entity):
-    def __init__(self, screen, position, zoom, sprite):
+    def __init__(self, screen, position, zoom, sprite, is_enemy):
         super().__init__(position, screen, None)
         self.health = 100
         self.path = []
         self.pathfind_delay = 0
-        self.new_x, self.new_y = 0,0
+        self.new_x, self.new_y = self.position.x, self.position.y
         self.moving = False
         self.sprite_sheet_file = sprite
         self.sprite_sheet = get_tileset(sprite, zoom)
@@ -29,6 +29,8 @@ class Mob(Entity):
         self.collider.size = (22 * zoom, 22 * zoom)
         self.knockback_counter = 0
         self.knockback_direction = 'down'
+        self.parent_pipe, self.child_pipe, self.pf_process = None, None, None
+        self.is_enemy = is_enemy
     
     def change_direction(self, direction):
         if direction == self.direction:
@@ -45,25 +47,43 @@ class Mob(Entity):
                 self.animation = self.animations[3]
             self.sprite = self.animation[0]
     
-    def move(self, dt):
+    def move(self, dt, player):
+        distance = self.position.distance_to(player.position)
         if len(self.path) > 0:
-            if self.position.x == int(self.position.x) and self.position.y == int(self.position.y):      
-                if len(self.path) > 1:
+            if abs(self.position.x - self.new_x) < dt * 2 and abs(self.position.y - self.new_y) < dt * 2:   
+                if len(self.path) > 1 and distance > 3 and self.is_enemy:
                     self.new_x, self.new_y = self.path.pop(1)
-            if self.position.x - self.new_x > 0:
-                self.change_direction('left')
-                self.position.x -= Fraction(1/32)
-            elif self.position.x - self.new_x < 0:
-                self.change_direction('right')
-                self.position.x += Fraction(1/32)
-            if self.position.y - self.new_y > 0:
-                self.change_direction('up')
-                self.position.y -= Fraction(1/32)
-            elif self.position.y - self.new_y < 0:
-                self.change_direction('down')
-                self.position.y += Fraction(1/32)
+                elif len(self.path) > 1 and not self.is_enemy:
+                    self.new_x, self.new_y = self.path.pop(1)
+                elif self.is_enemy:
+                    self.new_x, self.new_y = player.position
+            if not self.collider.colliderect(player.collider) and self.knockback_counter <= 0:
+                if self.position.x - self.new_x > dt * 2:
+                    self.change_direction('left')
+                    self.position.x -= dt * 2
+                elif self.position.x - self.new_x < -dt * 2:
+                    self.change_direction('right')
+                    self.position.x += dt * 2
+                elif self.position.y - self.new_y > dt * 2:
+                    self.change_direction('up')
+                    self.position.y -= dt * 2
+                elif self.position.y - self.new_y < -dt * 2:
+                    self.change_direction('down')
+                    self.position.y += dt * 2
+            elif self.collider.colliderect(player.collider):
+                self.knockback_counter = 0.5
+                if self.position.x - player.position.x < 0:
+                    self.position.x -= dt * 2 * player.move_speed
+                elif self.position.x - player.position.x > 0:
+                    self.position.x += dt * 2 * player.move_speed
+                if self.position.y - player.position.y < 0:
+                    self.position.y -= dt * 2 * player.move_speed
+                elif self.position.y - player.position.y > 0:
+                    self.position.y += dt * 2 * player.move_speed
             
-            if self.position.x == self.new_x and self.position.y == self.new_y:
+            if abs(self.position.x - self.new_x) < dt * 2 and abs(self.position.y - self.new_y) < dt * 2:
+                self.position.x = self.new_x
+                self.position.y = self.new_y
                 self.moving = False
                 self.sprite = self.animation[0]
             else:
@@ -71,7 +91,7 @@ class Mob(Entity):
             if self.moving:
                 self.anim_delay -= dt
                 if self.anim_delay <= 0:
-                    self.anim_delay = 0.15
+                    self.anim_delay = 0.10
                     self.sprite = self.animation[self.animation.index(self.sprite) + 1] if self.sprite in self.animation[:-1] else self.animation[4]
                 if self.sprite == self.animation[4]:
                     self.sprite = self.animation[0]

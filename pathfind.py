@@ -26,16 +26,16 @@ class Node:
         self.h = math.sqrt((self.position[0] - goal.position[0]) ** 2 + (self.position[1] - goal.position[1]) ** 2)
         self.f = self.g + self.h
     
-def astar(start_pos, player_pos, tilemap, trees, shops):
+def astar(start_pos, target_position, tilemap, trees, shops):
     x, y = 0, 0
-    if player_pos[0] % 1 >= 0.5:
-        x = int(player_pos[0]) + 1
+    if target_position[0] % 1 >= 0.5:
+        x = int(target_position[0]) + 1
     else: 
-        x = int(player_pos[0])
-    if player_pos[1] % 1 >= 0.5:
-        y = int(player_pos[1]) + 1
+        x = int(target_position[0])
+    if target_position[1] % 1 >= 0.5:
+        y = int(target_position[1]) + 1
     else: 
-        y = int(player_pos[1])
+        y = int(target_position[1])
     goal_pos = (x,y)
     start_node = Node(start_pos, tilemap[start_pos[1]][start_pos[0]])
     goal_node = Node(goal_pos, tilemap[goal_pos[1]][goal_pos[0]])

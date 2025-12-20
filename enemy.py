@@ -10,7 +10,7 @@ from coin import Coin
 
 class Enemy(Mob):
     def __init__(self, screen, position, zoom):
-        super().__init__(screen, position, zoom, pygame.image.load(f"{PATH}/assets/slime_sprite_sheet.png").convert_alpha())
+        super().__init__(screen, position, zoom, pygame.image.load(f"{PATH}/assets/slime_sprite_sheet.png").convert_alpha(), True)
 
     def check_collision(self, player):
         if self.collider.colliderect(player.collider):
@@ -37,19 +37,22 @@ class Enemy(Mob):
             self.position.x += Fraction(1/8)
 
     def update(self, player, tilemap, dt, zoom, trees, shop):
-        if self.pathfind_delay <= 0 and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
+        if self.pathfind_delay <= 0 and not self.pf_process and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
             if self.position != player.position:
-                parent_pipe, child_pipe = multiprocessing.Pipe()
-                pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, shop, child_pipe)))
-                pf_process.start()
-                new_path = parent_pipe.recv()
-                if new_path != None:
-                    self.path = new_path
-            self.pathfind_delay = 0.5
+                self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
+                self.pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, shop, self.child_pipe)))
+                self.pf_process.start()
+                self.pathfind_delay = 0.5
+        if self.parent_pipe and self.parent_pipe.poll():
+            new_path = self.parent_pipe.recv()
+            if new_path != None:
+                self.path = new_path
+            self.pf_process.join()
+            self.pf_process = None
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
         if self.move_delay <= 0:
-            self.move(dt)
+            self.move(dt, player)
             self.move_delay = .02
         if self.move_delay > 0:
             self.move_delay -= dt
@@ -58,6 +61,8 @@ class Enemy(Mob):
         if self.knockback_counter > 0:
             self.knockback_counter -= 1
             self.knockback(dt)
+        if self.knockback_counter < 0:
+            self.knockback_counter = 0
         self.check_collision(player)
         self.draw(player.position, zoom)
 

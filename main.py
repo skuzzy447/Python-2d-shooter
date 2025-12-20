@@ -61,6 +61,8 @@ def main():
     menu_cursor_rect = menu_cursor.get_rect()
     menu_cursor_rect.center = menu_selection
     
+    night = False
+
     def inter_color(color1, color2, factor):
          r1,g1,b1,a1 = color1
          r2,g2,b2,a2 = color2
@@ -79,6 +81,8 @@ def main():
         treetop = pygame.transform.scale(treetop_png, (int(treetop_png.get_width() * zoom), int(treetop_png.get_height() * zoom)))
         for entity in updateable:
             entity.zoom(zoom)
+        for shop in shops:
+            shop.zoom(zoom)
         player.zoom(zoom)
 
     while running:
@@ -92,16 +96,18 @@ def main():
                 factor = 0.0
             light_color = inter_color(current_color, next_color, factor)
             light.fill(light_color)
+        
+        night = False if current_color == DAY_COLOR else True
         if spawn_delay > 0:
             spawn_delay -= dt
         if spawn_delay <= 0:
             spawn_delay = 2
-            if len(mobs) < max_mobs and current_color == NIGHT_COLOR:
+            if len(mobs) < max_mobs and night:
                 if len(passives) > 0:
                     passives.sprites()[0].kill()
                 new_enemy = add_enemy(screen, updateable, enemies, mobs, world_size, tilemap, tree_list, zoom)
                 new_enemy.zoom(zoom)
-            if len(mobs) < max_mobs and current_color != NIGHT_COLOR:
+            if len(mobs) < max_mobs//2 and not night:
                 new_chicken = add_chicken(screen, updateable, passives, mobs, world_size, tilemap, tree_list, zoom)
                 new_chicken.zoom(zoom)
         if current_color == SUNSET_COLOR:
@@ -188,16 +194,16 @@ def main():
             keys = pygame.key.get_pressed()
             if keys[pygame.K_a] and player.position.x > 0:
                     player.moving = True
-                    player.move('left', colliders, dt)
+                    player.move('left', colliders, dt, zoom)
             elif keys[pygame.K_d] and player.position.x < world_size - 1:
                     player.moving = True
-                    player.move('right', colliders, dt)
+                    player.move('right', colliders, dt, zoom)
             elif keys[pygame.K_w] and player.position.y > 0:
                     player.moving = True
-                    player.move('up', colliders, dt)
+                    player.move('up', colliders, dt, zoom)
             elif keys[pygame.K_s] and player.position.y < world_size - 1:
                     player.moving = True
-                    player.move('down', colliders, dt)
+                    player.move('down', colliders, dt, zoom)
             else:
                 player.moving = False
         #rendering and update code
@@ -208,6 +214,8 @@ def main():
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
                 screen_y = y * 32 * zoom - (player.position.y * 32 * zoom - 512) - 16 * zoom
                 screen.blit(ground_tiles[tilemap[y][x]], (screen_x, screen_y))
+                for mob in passives:
+                    colliders.append(mob.collider)
                 for shop in shops:
                     colliders.append(shop.collider1)
                     colliders.append(shop.collider2)
@@ -220,7 +228,6 @@ def main():
                         screen.blit(ground_tiles[30], (screen_x, screen_y))
         if not paused:
             player.update(colliders, dt)
-            screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
             for entity in updateable:
                     if isinstance(entity, Enemy) or isinstance(entity, Chicken):
                         entity.update(player, tilemap, dt, zoom, tree_list, shops)
@@ -228,7 +235,7 @@ def main():
                         entity.update(player, dt, zoom)
                     else:
                         entity.update(player, dt, zoom, tree_list, updateable)
-                    
+            screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):
                 screen_x = x * 32 * zoom - (player.position.x * 32 * zoom - 512) - 16 * zoom
@@ -245,6 +252,8 @@ def main():
                         pygame.draw.rect(screen, (255,0,0), e.collider, 1)
             for collider in colliders:
                     pygame.draw.rect(screen, (0,255,0), collider, 1)
+            for shop in shops:
+                pygame.draw.rect(screen, (255,255,0), shop.entry, 1)
             pygame.draw.rect(screen, (0,0,255), player.collider, 1)
         healthbar = hearts[int(player.health/10)]
         screen.blit(light,(0,0))
