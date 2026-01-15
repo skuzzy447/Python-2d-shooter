@@ -229,13 +229,12 @@ def main():
         if not paused:
             player.update(colliders, dt)
             for entity in updateable:
-                    if __name__ == "__main__":
-                        if isinstance(entity, Enemy) or isinstance(entity, Chicken):
-                            entity.update(player, tilemap, dt, zoom, tree_list, shops)
-                        elif isinstance(entity, Coin):
-                            entity.update(player, dt, zoom)
-                        else:
-                            entity.update(player, dt, zoom, tree_list, updateable)
+                    if isinstance(entity, Enemy) or isinstance(entity, Chicken):
+                        entity.update(player, tilemap, dt, zoom, tree_list, shops)
+                    elif isinstance(entity, Coin):
+                        entity.update(player, dt, zoom)
+                    else:
+                        entity.update(player, dt, zoom, tree_list, updateable)
             screen.blit(player.sprite, (512 - 16*zoom,512 - 16*zoom))
         for y in range(max(0, int(player.position.y - 32 // zoom)), min(world_size, int(player.position.y + 32 // zoom))):
             for x in range(max(0, int(player.position.x - 32 // zoom)), min(world_size, int(player.position.x + 32 // zoom))):

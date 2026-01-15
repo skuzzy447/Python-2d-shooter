@@ -1,11 +1,8 @@
 import pygame
 from random import randint
-import multiprocessing
 from constants import PATH
-from pathfind import astar
 from mob import Mob
 from fractions import Fraction
-from get_tileset import get_tileset
 from coin import Coin
 
 class Enemy(Mob):
@@ -36,19 +33,11 @@ class Enemy(Mob):
         elif self.knockback_direction == 'right':
             self.position.x += Fraction(1/8)
 
-    def update(self, player, tilemap, dt, zoom, trees, shop):
+    def update(self, player, tilemap, dt, zoom, trees, shops):
         if self.pathfind_delay <= 0 and not self.pf_process and int(self.position.x) in range(int(player.position.x - 20), int(player.position.x + 20)) and int(self.position.y) in range(int(player.position.y - 20), int(player.position.y + 20)):
             if self.position != player.position:
-                self.parent_pipe, self.child_pipe = multiprocessing.Pipe()
-                self.pf_process = multiprocessing.Process(target = self.pathfind, args = ((player.position, tilemap, trees, shop, self.child_pipe)))
-                self.pf_process.start()
+                self.path = self.pathfind(player.position, tilemap, trees, shops)
                 self.pathfind_delay = 0.5
-        if self.parent_pipe and self.parent_pipe.poll():
-            new_path = self.parent_pipe.recv()
-            if new_path != None:
-                self.path = new_path
-            self.pf_process.join()
-            self.pf_process = None
         if self.pathfind_delay > 0:
             self.pathfind_delay -= dt
         if self.move_delay <= 0:
